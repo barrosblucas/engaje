@@ -204,6 +204,75 @@ Implementar a Home publica completa (`/public`) para o portal Engaje com identid
 - `pnpm test` ✅
 - `pnpm build` ✅
 
+## Tarefa 11 — Redesign da pagina de login com base no componente Travel Connect
+
+### Objetivo
+Aplicar novo layout da tela de login inspirado no componente `travel-connect-signin-1` da 21st.dev, mantendo a logica de autenticacao existente, textos em portugues e identidade visual (fontes e paleta) do projeto.
+
+### Arquivos alterados (principais)
+- `apps/web/src/app/login/page.tsx`
+- `apps/web/src/app/login/dot-map-canvas.tsx` (novo)
+- `apps/web/src/app/login/login-redirect.ts` (novo)
+- `apps/web/src/app/login/login-redirect.spec.ts` (novo)
+- `apps/web/src/app/globals.css`
+- `.context/docs/REPOMAP.md`
+
+### O que mudou
+- Reescrita da tela `/login` para layout em duas colunas:
+  - painel visual com mapa pontilhado animado e trilhas de conexao,
+  - painel de formulario com hierarquia visual e CTA principal.
+- Todos os textos da experiencia de login foram mantidos em portugues.
+- Estilos foram adaptados para os tokens do projeto (`--color-primary`, `--color-accent`, tipografia global), sem introduzir nova paleta externa.
+- Mantida a integracao existente de login (`useLogin`) e comportamento de redirect.
+- Extraido helper de redirect seguro (`resolveLoginRedirect`) com validacao de path interno para evitar open redirect.
+- Adicionados testes unitarios do helper de redirect no `apps/web` (Vitest).
+
+### Impacto
+- Tela de login fica alinhada ao visual solicitado (inspiracao 21st.dev) sem quebrar o fluxo de autenticacao atual.
+- Melhor seguranca no redirect pos-login.
+- Sem alteracoes em contratos Zod (`packages/contracts`) e sem alteracoes de API.
+
+### Validacao executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
+## Tarefa 12 — Correcao definitiva de assets 404 no `next dev` (HTML cru)
+
+### Objetivo
+Eliminar recorrencia de tela sem CSS/JS em desenvolvimento (requests `/_next/static/*` com `404`) apos alteracoes de codigo.
+
+### Arquivos alterados (principais)
+- `apps/web/src/middleware.ts`
+- `apps/web/next.config.ts`
+- `apps/web/tsconfig.json`
+- `.gitignore`
+- `.context/docs/REPOMAP.md`
+
+### O que mudou
+- Removido workaround de rewrite no middleware para `/_next/static/css/*` (`__next_css_remove`), que era paliativo e podia gerar inconsistencias de assets.
+- Middleware voltou a atuar somente na protecao de rotas autenticadas (`/app/*`), sem tocar em assets internos do Next.
+- Configurado `distDir` separado por ambiente no Next:
+  - desenvolvimento: `.next-dev`
+  - build/producao: `.next`
+- Com isso, artefatos do `next dev` deixam de colidir com comandos como `build/typecheck` que tambem usam `.next`.
+- `apps/web/tsconfig.json` foi sincronizado para incluir tipos gerados em `.next-dev/types/**/*.ts` (alem de `.next/types/**/*.ts`).
+- `.next-dev` foi adicionado ao `.gitignore` para evitar ruído no versionamento e lint em arquivos gerados de dev.
+
+### Impacto
+- Corrige de forma estrutural o cenario de pagina renderizada em HTML cru por `404` de CSS/chunks no dev.
+- Reduz risco de regressao quando houver alteracao de codigo com servidor dev ativo e execucao de comandos de qualidade/build em paralelo.
+- Sem alteracoes de contrato (`packages/contracts`) e sem mudancas de API.
+
+### Validacao executada
+- Reproducao local em dev (`/public`) com verificacao de status para todos os assets referenciados em `/_next/static/*` antes/depois de alteracao de arquivo: ✅ (`200` em todos).
+- Reproducao com `pnpm --filter @engaje/web build` executado durante `next dev`: ✅ (assets permaneceram `200`).
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
 ## Tarefa 10 — Correção de CSS 404 no Next dev (página “HTML cru”)
 
 ### Objetivo

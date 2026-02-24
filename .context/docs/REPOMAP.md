@@ -21,7 +21,10 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 
 ## apps/web (Next.js 15 App Router)
 - `postcss.config.mjs` — Pipeline PostCSS com plugin `@tailwindcss/postcss` para Tailwind v4.
+- `next.config.ts` — Config base do Next com `distDir` isolado no desenvolvimento (`.next-dev`) para evitar colisao de artefatos com build/typecheck.
 - `src/app/page.tsx` — Redirect da raiz `/` para `/public`.
+- `src/app/login/page.tsx` — Login publico com layout visual em duas colunas (mapa animado + formulario) mantendo auth SPA client-side.
+- `src/app/login/dot-map-canvas.tsx` + `src/app/login/login-redirect.ts` — Componente visual do mapa e helper de redirect seguro (anti open-redirect).
 - `src/app/app/dashboard/page.tsx` — Rota de dashboard (ponte) com redirect para `/app/inscricoes`.
 - `src/app/public/page.tsx` — Nova Home institucional publica (hero, categorias, destaques, noticias e microinteracoes).
 - `src/app/public/eventos/*` — Agenda publica SEO-first + detalhe de evento com CTA de inscricao.
