@@ -4,7 +4,17 @@
  * SSOT de fetching para dados autenticados e públicos.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const DEFAULT_API_URL = 'http://localhost:3001';
+
+const resolveApiUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+
+  if (typeof window !== 'undefined') {
+    return `${window.location.protocol}//${window.location.hostname}:3001`;
+  }
+
+  return DEFAULT_API_URL;
+};
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
@@ -23,8 +33,9 @@ class ApiError extends Error {
 
 async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { body, headers, ...rest } = options;
+  const apiUrl = resolveApiUrl();
 
-  const response = await fetch(`${API_URL}/v1${path}`, {
+  const response = await fetch(`${apiUrl}/v1${path}`, {
     ...rest,
     credentials: 'include',
     headers: {
@@ -65,4 +76,4 @@ export const apiClient = {
 };
 
 export { ApiError };
-export { API_URL };
+export const API_URL = resolveApiUrl();

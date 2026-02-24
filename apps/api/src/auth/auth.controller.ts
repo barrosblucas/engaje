@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  InternalServerErrorException,
   Post,
   Req,
   Res,
@@ -29,7 +30,7 @@ export class AuthController {
   async register(@Body() body: unknown, @Req() req: AuthenticatedRequest) {
     const input = RegisterInputSchema.parse(body);
     const user = await this.authService.registerCitizen(input);
-    req.login(user, () => undefined);
+    await this.persistSession(req, user);
     return {
       user: {
         id: user.id,
@@ -46,9 +47,11 @@ export class AuthController {
   @Post('login')
   @UseGuards(AuthGuard('local'))
   @HttpCode(HttpStatus.OK)
-  login(@Req() req: AuthenticatedRequest) {
+  async login(@Req() req: AuthenticatedRequest) {
     const user = req.user;
     if (!user) throw new UnauthorizedException('Credenciais inválidas');
+    await this.persistSession(req, user);
+
     return {
       user: {
         id: user.id,
@@ -119,5 +122,19 @@ export class AuthController {
         createdAt: new Date().toISOString(),
       },
     };
+  }
+
+  private async persistSession(req: AuthenticatedRequest, user: UserSession): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      req.login(user, (error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve();
+      });
+    }).catch(() => {
+      throw new InternalServerErrorException('Falha ao iniciar sessão');
+    });
   }
 }

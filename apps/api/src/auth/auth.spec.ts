@@ -113,6 +113,24 @@ describe('Auth (integration)', () => {
       expect(res.body.user).toBeDefined();
     });
 
+    it('cria sessão após login e permite consultar /auth/me', async () => {
+      const agent = request.agent(app.getHttpServer());
+
+      const loginResponse = await agent
+        .post('/v1/auth/login')
+        .send({ identifier: user.email, password: user.password })
+        .expect(200);
+
+      const setCookieHeader = loginResponse.headers['set-cookie'];
+      const cookieHeaderValue = Array.isArray(setCookieHeader)
+        ? setCookieHeader.join(';')
+        : (setCookieHeader ?? '');
+      expect(cookieHeaderValue).toContain('connect.sid=');
+
+      const meResponse = await agent.get('/v1/auth/me').expect(200);
+      expect(meResponse.body.user.email).toBe(user.email);
+    });
+
     it('retorna 401 para senha errada', async () => {
       await request(app.getHttpServer())
         .post('/v1/auth/login')

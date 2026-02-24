@@ -204,6 +204,63 @@ Implementar a Home publica completa (`/public`) para o portal Engaje com identid
 - `pnpm test` ✅
 - `pnpm build` ✅
 
+## Tarefa 10 — Correção de CSS 404 no Next dev (página “HTML cru”)
+
+### Objetivo
+Corrigir regressão em desenvolvimento onde a aplicação renderizava apenas HTML sem estilos porque `/_next/static/css/app/layout.css` retornava `404`.
+
+### Arquivos alterados (principais)
+- `apps/web/src/middleware.ts`
+
+### O que mudou
+- Adicionada normalização no middleware para requests de CSS estático do Next em `development`:
+  - quando a URL começa com `/_next/static/css/` e não possui `__next_css_remove`,
+  - o middleware faz rewrite para a mesma URL adicionando `__next_css_remove=1`.
+- Mantida a regra de proteção de rotas autenticadas (`/app/*`) sem alteração de comportamento.
+- Atualizado `matcher` do middleware para também incluir `/_next/static/css/:path*`.
+
+### Impacto
+- O CSS principal volta a responder `200` no fluxo de dev e a UI deixa de aparecer “crua”/sem estilo.
+- Sem alterações de contratos (`packages/contracts`) e sem mudança de endpoints da API.
+
+### Validacao executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
+## Tarefa 08 — Correção de navegação pós-login em ambiente local/LAN
+
+### Objetivo
+Corrigir o cenário em que o usuário clica em entrar, não vê erro, mas permanece na tela de login sem ir para a área autenticada.
+
+### Arquivos alterados (principais)
+- `apps/web/src/shared/api-client.ts`
+- `apps/web/src/app/login/page.tsx`
+- `apps/web/src/middleware.ts`
+- `apps/web/src/app/app/dashboard/page.tsx` (novo)
+- `.context/docs/REPOMAP.md`
+- `.context/docs/PROJECT_STATE.md`
+
+### O que mudou
+- Ajustado `api-client` para fallback dinâmico de URL da API quando `NEXT_PUBLIC_API_URL` não está definido:
+  - usa `window.location.hostname` + porta `3001` no browser.
+  - evita mismatch `localhost` vs `192.168.x.x` no desenvolvimento em LAN.
+- Login passou a aceitar tanto `redirect` quanto `callbackUrl` na query string e default para `/app/dashboard`.
+- Middleware atualizado para enviar `redirect` (alinhado ao login atual).
+- Criada rota `/app/dashboard` como ponte, redirecionando para `/app/inscricoes`.
+
+### Impacto
+- Fluxo de login deixa de “voltar para login” silenciosamente quando frontend roda em IP local.
+- Navegação pós-login fica consistente entre links diretos, middleware e callback de autenticação.
+- Sem alterações de contratos (`packages/contracts`) e sem mudanças em endpoints da API.
+
+### Validacao executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
 ## Tarefa 06 — Correção de CORS no login para acesso via IP de rede local
 
 ### Objetivo
@@ -227,6 +284,33 @@ Corrigir falha de preflight/CORS no `POST /v1/auth/login` quando o frontend roda
 - Redirect do Google callback (`/v1/auth/google/callback`) passou a reutilizar o origin primário da mesma configuração, evitando divergência entre auth redirect e CORS.
 - Documentada nova variável opcional `APP_URLS` em `.env.example`.
 
+## Tarefa 09 — Correção de sessão no login (botão Entrar sem avanço)
+
+### Objetivo
+Corrigir o cenário em que o `POST /v1/auth/login` retornava `200`, mas não persistia sessão, mantendo o usuário preso na tela de login após clicar em **Entrar**.
+
+### Arquivos alterados (principais)
+- `apps/api/src/auth/auth.controller.ts`
+- `apps/api/src/auth/auth.spec.ts`
+
+### O que mudou
+- `AuthController.login` passou a persistir sessão explicitamente com `req.login(...)` antes de responder.
+- Fluxo de sessão foi centralizado em helper interno (`persistSession`) e reaproveitado também no `register`.
+- Adicionado teste de regressão de integração para validar que:
+  - login retorna cookie de sessão (`connect.sid`);
+  - o mesmo agente autenticado consegue acessar `GET /v1/auth/me`.
+- Sem mudanças em contratos Zod (`packages/contracts`) e sem criação de novos endpoints.
+
+### Impacto
+- O fluxo de pós-login volta a funcionar: após autenticar, a navegação para `/app/*` deixa de cair em redirecionamento silencioso para `/login`.
+- Reduz risco de regressão com cobertura explícita de sessão no teste de integração de auth.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
 ### Impacto
 - Login via cookie (`credentials: include`) deixa de falhar por mismatch de origin quando o frontend está em IP local.
 - Comportamento de produção permanece restritivo (somente origins configurados).
@@ -236,6 +320,48 @@ Corrigir falha de preflight/CORS no `POST /v1/auth/login` quando o frontend roda
 - `pnpm --filter @engaje/api lint` ✅
 - `pnpm --filter @engaje/api typecheck` ✅
 - `pnpm --filter @engaje/api exec jest --runInBand` ✅
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
+## Tarefa 07 — Logging completo da API em ambiente de desenvolvimento
+
+### Objetivo
+Habilitar observabilidade completa no backend em `dev`, com logs estruturados de aplicação e logs HTTP por request, sem expor dados sensíveis.
+
+### Arquivos alterados (principais)
+- `apps/api/src/config/app-logger.ts` (novo)
+- `apps/api/src/config/nest-logger.ts` (novo)
+- `apps/api/src/config/http-logging.middleware.ts` (novo)
+- `apps/api/src/config/app-logger.spec.ts` (novo)
+- `apps/api/src/config/http-logging.middleware.spec.ts` (novo)
+- `apps/api/src/main.ts`
+- `.env.example`
+- `.context/docs/REPOMAP.md`
+- `.context/docs/PROJECT_STATE.md`
+
+### O que mudou
+- Criado logger central em Pino com:
+  - `LOG_LEVEL` opcional via ambiente,
+  - fallback `debug` em desenvolvimento e `info` em produção,
+  - redaction de headers sensíveis (`authorization`, `cookie`, `set-cookie`).
+- Criado adaptador de logger para NestJS, preservando contexto e trace em logs do framework.
+- Adicionado middleware HTTP global com:
+  - geração/propagação de `x-request-id`,
+  - log de método, rota, status, duração e IP para toda request,
+  - metadados adicionais em `dev` (`origin`, `referer`, `user-agent`),
+  - nível dinâmico por status (`info`/`warn`/`error`).
+- Atualizado `.env.example` com seção de `LOG_LEVEL`.
+- Cobertura de testes para resolução de nível de log e comportamento do middleware HTTP.
+
+### Impacto
+- Desenvolvimento local com rastreabilidade completa de requests e erros.
+- Melhor correlação de incidentes via `request-id`.
+- Produção permanece com logs estruturados e sem vazamento de headers sensíveis.
+- Sem alterações de contratos em `packages/contracts` e sem mudança de rotas.
+
+### Validacao executada
 - `pnpm lint` ✅
 - `pnpm typecheck` ✅
 - `pnpm test` ✅

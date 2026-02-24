@@ -15,12 +15,14 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 ## apps/api (NestJS, prefixo `v1`)
 - `src/main.ts` — Bootstrap Nest com prefixo global `v1`, `cookie-parser`, `express-session`, `passport` e logger `pino`.
 - `src/config/app-origins.ts` — SSOT de origins do app para CORS/redirect (`APP_URLS` + fallback `APP_URL`).
+- `src/config/app-logger.ts` + `src/config/nest-logger.ts` + `src/config/http-logging.middleware.ts` — Logger estruturado com nivel dinâmico por ambiente e log HTTP com `request-id`.
 - `src/public/events/*` — Endpoints publicos `GET /v1/public/events*`.
 - `src/admin/events/*` — Fluxo autenticado de gestao de eventos e export CSV.
 
 ## apps/web (Next.js 15 App Router)
 - `postcss.config.mjs` — Pipeline PostCSS com plugin `@tailwindcss/postcss` para Tailwind v4.
 - `src/app/page.tsx` — Redirect da raiz `/` para `/public`.
+- `src/app/app/dashboard/page.tsx` — Rota de dashboard (ponte) com redirect para `/app/inscricoes`.
 - `src/app/public/page.tsx` — Nova Home institucional publica (hero, categorias, destaques, noticias e microinteracoes).
 - `src/app/public/eventos/*` — Agenda publica SEO-first + detalhe de evento com CTA de inscricao.
 - `src/app/public/programas/page.tsx` — Vitrine publica de iniciativas e programas municipais.
@@ -33,6 +35,8 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/lib/public-events.ts` — Utilitarios de categoria/data/vagas para dominio de eventos publicos.
 - `src/lib/cn.ts` — Helper para composicao de classes CSS.
 - `src/components/public/home/home-utils.spec.ts` — Testes Vitest dos utilitarios da Home.
+- `src/shared/api-client.ts` — Cliente HTTP com `credentials: "include"` e fallback dinamico para host local atual (`window.location.hostname`) quando `NEXT_PUBLIC_API_URL` nao estiver definido.
+- `src/middleware.ts` — Protecao de `/app/*` redirecionando para `/login?redirect=...`.
 
 ## packages/contracts
 - `src/index.ts` — SSOT de schemas Zod dos dominios Auth, Public Events, Admin Events e Registrations.

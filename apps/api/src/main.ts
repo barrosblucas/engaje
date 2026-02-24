@@ -6,21 +6,18 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import passport from 'passport';
-import { pino } from 'pino';
 import { AppModule } from './app.module';
+import { createAppLogger, resolveLogLevel } from './config/app-logger';
 import { createCorsOriginValidator, getAllowedAppOrigins } from './config/app-origins';
+import { createHttpLoggingMiddleware } from './config/http-logging.middleware';
+import { createNestLogger } from './config/nest-logger';
 
-const logger = pino({ level: process.env.LOG_LEVEL ?? 'info' });
+const logger = createAppLogger(process.env);
+const nodeEnv = process.env.NODE_ENV ?? 'development';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: {
-      log: (msg: string) => logger.info(msg),
-      error: (msg: string) => logger.error(msg),
-      warn: (msg: string) => logger.warn(msg),
-      debug: (msg: string) => logger.debug(msg),
-      verbose: (msg: string) => logger.trace(msg),
-    },
+    logger: createNestLogger(logger),
   });
 
   app.setGlobalPrefix('v1');
@@ -34,6 +31,7 @@ async function bootstrap() {
   );
 
   app.use(cookieParser());
+  app.use(createHttpLoggingMiddleware(logger, process.env));
 
   app.use(
     session({
@@ -62,8 +60,15 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
-  logger.info(`API running on http://localhost:${port}/v1`);
-  logger.info(`Allowed app origins: ${allowedOrigins.join(', ')}`);
+  logger.info(
+    {
+      port,
+      env: nodeEnv,
+      logLevel: resolveLogLevel(process.env),
+      allowedOrigins,
+    },
+    'API running',
+  );
 }
 
 bootstrap().catch((err: unknown) => {

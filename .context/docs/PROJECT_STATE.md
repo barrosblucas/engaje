@@ -58,6 +58,8 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 - [x] Home publica redesenhada com design system reutilizavel e tema claro/escuro.
 - [x] Suite de testes do web atualizada com Vitest para utilitarios da nova Home.
 - [x] CORS de autenticacao ajustado para suportar origins em rede local no desenvolvimento (`APP_URLS` + fallback `APP_URL`).
+- [x] Logging estruturado completo da API em desenvolvimento (nivel `debug` por padrao + logs HTTP com `request-id`).
+- [x] Fluxo de login SPA corrigido para ambiente LAN (fallback dinamico de host da API + compatibilidade de redirect + rota `/app/dashboard`).
 
 ### Proximos passos sugeridos
 - [ ] Expandir o design system para rotas `/public/eventos` e `/public/eventos/[slug]`.

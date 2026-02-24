@@ -15,7 +15,8 @@ export default function LoginPage() {
 function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') ?? '/app/inscricoes';
+  const redirect =
+    searchParams.get('redirect') ?? searchParams.get('callbackUrl') ?? '/app/dashboard';
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
