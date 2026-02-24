@@ -1,5 +1,43 @@
 # CHANGELOG 2026-02-24
 
+## Tarefa 20 — Tiptap no admin de eventos + correção de carregamento de imagens
+
+### Objetivo
+Padronizar o campo **Descrição pública** com o editor simples do Tiptap na tela de eventos e corrigir imagens quebradas (`/uploads/*`) no frontend, mantendo estratégia de armazenamento em arquivo (sem base64).
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/editor/rich-text-editor.tsx`
+- `apps/web/src/lib/rich-text.ts`
+- `apps/web/src/lib/rich-text.spec.ts` (novo)
+- `apps/web/next.config.ts`
+- `.context/docs/REPOMAP.md`
+
+### O que mudou
+- **Editor de descrição pública (Tiptap Simple Editor)**
+  - Toolbar refinada com ações essenciais (`Texto`, `Título`, `Subtítulo`, `Negrito`, `Itálico`, listas, link e imagem).
+  - Estados ativos dos botões padronizados e normalização de link com protocolo HTTP/HTTPS.
+  - Mantida integração de upload de imagem existente para `/v1/admin/uploads/image`.
+- **Correção de imagens quebradas no frontend**
+  - Adicionado rewrite no Next para encaminhar `GET /uploads/*` do web para a API (`NEXT_PUBLIC_API_URL`, com fallback `http://localhost:3001`).
+  - Adicionada allowlist dinâmica no `next/image` para a origem da API configurada.
+  - Sanitização frontend de rich text evoluída com normalização de `src="/uploads/*"` para origem absoluta da API quando configurada por ambiente.
+- **Testes**
+  - Criada suíte `rich-text.spec.ts` cobrindo sanitização e normalização de URLs de imagem no HTML rico.
+
+### Decisão técnica registrada
+- Mantido **upload em arquivo** (com URL) como padrão.
+- **Base64 não adotado** para evitar aumento de payload, pior cache/CDN e crescimento desnecessário no banco.
+
+### Impacto
+- Imagens de banner/galeria/descrição passam a carregar corretamente nas páginas públicas e autenticadas que usam `/uploads/*`.
+- Fluxo de edição de descrição pública no admin permanece contract-first e compatível com backend atual.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
 ## Tarefa 19 — Estabilização de lint e testes de integração
 
 ### Objetivo

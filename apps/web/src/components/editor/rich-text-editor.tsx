@@ -17,6 +17,14 @@ function normalizeEditorHtml(rawHtml: string): string {
   return trimmed === '<p></p>' ? '' : trimmed;
 }
 
+function resolveToolbarButtonClass(isActive: boolean): string {
+  if (isActive) {
+    return 'border-brand-300 bg-brand-50 text-brand-700';
+  }
+
+  return 'border-slate-200 bg-white text-slate-700';
+}
+
 export function RichTextEditor({ value, onChange, onUploadImage }: RichTextEditorProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -80,7 +88,12 @@ export function RichTextEditor({ value, onChange, onUploadImage }: RichTextEdito
       return;
     }
 
-    editor.chain().focus().setLink({ href: trimmed }).run();
+    const hasProtocol = /^https?:\/\//i.test(trimmed);
+    editor
+      .chain()
+      .focus()
+      .setLink({ href: hasProtocol ? trimmed : `https://${trimmed}` })
+      .run();
   }
 
   const isDisabled = !editor || isUploadingImage;
@@ -91,11 +104,31 @@ export function RichTextEditor({ value, onChange, onUploadImage }: RichTextEdito
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${
-              editor?.isActive('bold')
-                ? 'border-brand-300 bg-brand-50 text-brand-700'
-                : 'border-slate-200 bg-white text-slate-700'
-            }`}
+            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${resolveToolbarButtonClass(editor?.isActive('paragraph') ?? false)}`}
+            onClick={() => editor?.chain().focus().setParagraph().run()}
+            disabled={isDisabled}
+          >
+            Texto
+          </button>
+          <button
+            type="button"
+            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${resolveToolbarButtonClass(editor?.isActive('heading', { level: 2 }) ?? false)}`}
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+            disabled={isDisabled}
+          >
+            Título
+          </button>
+          <button
+            type="button"
+            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${resolveToolbarButtonClass(editor?.isActive('heading', { level: 3 }) ?? false)}`}
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+            disabled={isDisabled}
+          >
+            Subtítulo
+          </button>
+          <button
+            type="button"
+            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${resolveToolbarButtonClass(editor?.isActive('bold') ?? false)}`}
             onClick={() => editor?.chain().focus().toggleBold().run()}
             disabled={isDisabled}
           >
@@ -103,11 +136,7 @@ export function RichTextEditor({ value, onChange, onUploadImage }: RichTextEdito
           </button>
           <button
             type="button"
-            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${
-              editor?.isActive('italic')
-                ? 'border-brand-300 bg-brand-50 text-brand-700'
-                : 'border-slate-200 bg-white text-slate-700'
-            }`}
+            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${resolveToolbarButtonClass(editor?.isActive('italic') ?? false)}`}
             onClick={() => editor?.chain().focus().toggleItalic().run()}
             disabled={isDisabled}
           >
@@ -115,11 +144,7 @@ export function RichTextEditor({ value, onChange, onUploadImage }: RichTextEdito
           </button>
           <button
             type="button"
-            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${
-              editor?.isActive('bulletList')
-                ? 'border-brand-300 bg-brand-50 text-brand-700'
-                : 'border-slate-200 bg-white text-slate-700'
-            }`}
+            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${resolveToolbarButtonClass(editor?.isActive('bulletList') ?? false)}`}
             onClick={() => editor?.chain().focus().toggleBulletList().run()}
             disabled={isDisabled}
           >
@@ -127,11 +152,7 @@ export function RichTextEditor({ value, onChange, onUploadImage }: RichTextEdito
           </button>
           <button
             type="button"
-            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${
-              editor?.isActive('orderedList')
-                ? 'border-brand-300 bg-brand-50 text-brand-700'
-                : 'border-slate-200 bg-white text-slate-700'
-            }`}
+            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${resolveToolbarButtonClass(editor?.isActive('orderedList') ?? false)}`}
             onClick={() => editor?.chain().focus().toggleOrderedList().run()}
             disabled={isDisabled}
           >
@@ -139,11 +160,7 @@ export function RichTextEditor({ value, onChange, onUploadImage }: RichTextEdito
           </button>
           <button
             type="button"
-            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${
-              editor?.isActive('link')
-                ? 'border-brand-300 bg-brand-50 text-brand-700'
-                : 'border-slate-200 bg-white text-slate-700'
-            }`}
+            className={`rounded-lg border px-2 py-1 text-xs font-semibold ${resolveToolbarButtonClass(editor?.isActive('link') ?? false)}`}
             onClick={handleSetLink}
             disabled={isDisabled}
           >
@@ -167,7 +184,7 @@ export function RichTextEditor({ value, onChange, onUploadImage }: RichTextEdito
         />
       </div>
 
-      <EditorContent editor={editor} />
+      <EditorContent editor={editor} aria-label="Editor Tiptap simples" />
     </div>
   );
 }

@@ -29,7 +29,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 
 ## apps/web (Next.js 15 App Router)
 - `postcss.config.mjs` — Pipeline PostCSS com plugin `@tailwindcss/postcss` para Tailwind v4.
-- `next.config.ts` — Config base do Next com `distDir` isolado no desenvolvimento (`.next-dev`) para evitar colisao de artefatos com build/typecheck.
+- `next.config.ts` — Config do Next com `distDir` isolado, proxy/rewrite de `/uploads/*` para a API (`NEXT_PUBLIC_API_URL`) e allowlist dinâmica de imagens remotas do backend.
 - `src/app/page.tsx` — Redirect da raiz `/` para `/public`.
 - `src/app/login/page.tsx` — Login publico com layout visual em duas colunas (mapa animado + formulario) mantendo auth SPA client-side.
 - `src/app/login/dot-map-canvas.tsx` + `src/app/login/login-redirect.ts` — Componente visual do mapa e helper de redirect seguro (anti open-redirect).
@@ -44,6 +44,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/app/app/admin/eventos/[id]/page.tsx` — Formulario de evento em etapas com builder dinamico + preview.
 - `src/app/app/admin/programas/*` — Gestao SPA de programas com form builder dinamico.
 - `src/components/dynamic-form/*` — Builder, renderizacao de campos dinamicos e preview.
+- `src/components/editor/rich-text-editor.tsx` — Editor rico baseado em Tiptap (Simple Editor) para campos de descricao publica com toolbar e upload de imagens.
 - `src/components/events/attendance-intent-button.tsx` — Botao `Vou ir com certeza` com contador persistente.
 - `src/components/public/home/*` — Secoes da Home publica (hero, categorias, eventos, banner, stats, noticias, engajamento).
 - `src/components/ui/*` — Design system base (`Button`, `Card`, `Badge`, `Input`, `Select`, `DatePicker`, `Modal`, `Toast`, `Skeleton`, `ProgressBar`, `Avatar`, `Chip`, `Accordion`, `Timeline`).
@@ -51,8 +52,10 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/components/public/public-header.tsx` — Header institucional com menu responsivo e bottom tab bar mobile.
 - `src/components/public/public-footer.tsx` — Rodape institucional com links e canais oficiais.
 - `src/lib/public-events.ts` — Utilitarios de categoria/data/vagas para dominio de eventos publicos.
+- `src/lib/rich-text.ts` — Sanitizacao defensiva para render de HTML rico e normalizacao de URLs de upload (`/uploads/*`) quando houver origem de API configurada.
 - `src/lib/cn.ts` — Helper para composicao de classes CSS.
 - `src/components/public/home/home-utils.spec.ts` — Testes Vitest dos utilitarios da Home.
+- `src/lib/rich-text.spec.ts` — Testes Vitest de sanitizacao/normalizacao de HTML rico e URLs de imagem.
 - `src/shared/api-client.ts` — Cliente HTTP com `credentials: "include"` e fallback dinamico para host local atual (`window.location.hostname`) quando `NEXT_PUBLIC_API_URL` nao estiver definido.
 - `src/shared/hooks/use-admin.ts` — Hooks admin consumindo `/admin/events*` e `/admin/programs*`.
 - `src/shared/hooks/use-events.ts` — Hooks publicos/autenticados para eventos, programas, inscricoes (lista, detalhe, criacao, cancelamento) e attendance intents.
