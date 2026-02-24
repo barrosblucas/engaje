@@ -17,8 +17,15 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/config/app-origins.ts` — SSOT de origins do app para CORS/redirect (`APP_URLS` + fallback `APP_URL`).
 - `src/config/app-logger.ts` + `src/config/nest-logger.ts` + `src/config/http-logging.middleware.ts` — Logger estruturado com nivel dinâmico por ambiente e log HTTP com `request-id`.
 - `src/public/events/*` — Endpoints publicos `GET /v1/public/events*`.
+- `src/public/programs/*` — Endpoints publicos `GET /v1/public/programs*`.
 - `src/admin/events/*` — Fluxo autenticado de gestao de eventos e export CSV.
   - inclui listagem, detalhe (`GET /v1/admin/events/:id`), edicao, status, imagens e inscritos.
+- `src/admin/programs/*` — Fluxo autenticado de gestao de programas (listagem, detalhe, criacao e edicao).
+- `src/events/attendance-intents.*` — Endpoints autenticados para CTA de presenca:
+  - `POST /v1/events/:id/attendance-intents`
+  - `DELETE /v1/events/:id/attendance-intents`
+  - `GET /v1/events/:id/attendance-intents/me`
+- `src/registrations/*` — Inscricao autenticada de eventos com `formData` dinamico, listagem e detalhe do comprovante (`GET /v1/registrations/:id`).
 
 ## apps/web (Next.js 15 App Router)
 - `postcss.config.mjs` — Pipeline PostCSS com plugin `@tailwindcss/postcss` para Tailwind v4.
@@ -26,11 +33,18 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/app/page.tsx` — Redirect da raiz `/` para `/public`.
 - `src/app/login/page.tsx` — Login publico com layout visual em duas colunas (mapa animado + formulario) mantendo auth SPA client-side.
 - `src/app/login/dot-map-canvas.tsx` + `src/app/login/login-redirect.ts` — Componente visual do mapa e helper de redirect seguro (anti open-redirect).
-- `src/app/app/dashboard/page.tsx` — Rota de dashboard (ponte) com redirect para `/app/inscricoes`.
+- `src/app/app/dashboard/page.tsx` — Rota de dashboard (ponte) com redirect por perfil (`admin/super_admin` -> `/app/admin/eventos`, `citizen` -> `/app/inscricoes`).
 - `src/app/public/page.tsx` — Nova Home institucional publica (hero, categorias, destaques, noticias e microinteracoes).
-- `src/app/public/eventos/*` — Agenda publica SEO-first + detalhe de evento com CTA de inscricao.
-- `src/app/public/programas/page.tsx` — Vitrine publica de iniciativas e programas municipais.
+- `src/app/public/eventos/*` — Agenda publica SEO-first + detalhe de evento com CTA para fluxo autenticado de inscricao.
+- `src/app/app/inscricoes/nova/[slug]/page.tsx` — Tela autenticada (SPA) para inscricao dinamica por evento (slug).
+- `src/app/app/inscricoes/[id]/page.tsx` — Tela autenticada (SPA) de comprovante da inscricao com respostas preenchidas.
+- `src/app/public/programas/page.tsx` — Listagem publica de programas consumindo `/v1/public/programs`.
+- `src/app/public/programas/[slug]/page.tsx` — Detalhe publico de programa com modo inscricao/informativo.
 - `src/app/public/contato/page.tsx` — Pagina publica de contato institucional e FAQ.
+- `src/app/app/admin/eventos/[id]/page.tsx` — Formulario de evento em etapas com builder dinamico + preview.
+- `src/app/app/admin/programas/*` — Gestao SPA de programas com form builder dinamico.
+- `src/components/dynamic-form/*` — Builder, renderizacao de campos dinamicos e preview.
+- `src/components/events/attendance-intent-button.tsx` — Botao `Vou ir com certeza` com contador persistente.
 - `src/components/public/home/*` — Secoes da Home publica (hero, categorias, eventos, banner, stats, noticias, engajamento).
 - `src/components/ui/*` — Design system base (`Button`, `Card`, `Badge`, `Input`, `Select`, `DatePicker`, `Modal`, `Toast`, `Skeleton`, `ProgressBar`, `Avatar`, `Chip`, `Accordion`, `Timeline`).
 - `src/components/public/theme-toggle.tsx` — Toggle manual de tema com fallback para `prefers-color-scheme`.
@@ -40,22 +54,27 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/lib/cn.ts` — Helper para composicao de classes CSS.
 - `src/components/public/home/home-utils.spec.ts` — Testes Vitest dos utilitarios da Home.
 - `src/shared/api-client.ts` — Cliente HTTP com `credentials: "include"` e fallback dinamico para host local atual (`window.location.hostname`) quando `NEXT_PUBLIC_API_URL` nao estiver definido.
-- `src/shared/hooks/use-admin.ts` — Hooks admin consumindo `/admin/*` via `api-client` (sem duplicar prefixo `/v1`).
+- `src/shared/hooks/use-admin.ts` — Hooks admin consumindo `/admin/events*` e `/admin/programs*`.
+- `src/shared/hooks/use-events.ts` — Hooks publicos/autenticados para eventos, programas, inscricoes (lista, detalhe, criacao, cancelamento) e attendance intents.
+- `src/shared/dynamic-form/*` — Utilitarios de serializacao/deserializacao e regras de modo para o builder.
 - `src/middleware.ts` — Protecao de `/app/*` redirecionando para `/login?redirect=...`.
 
 ## packages/contracts
-- `src/index.ts` — SSOT de schemas Zod dos dominios Auth, Public Events, Admin Events e Registrations.
-- `src/index.spec.ts` — Testes de contratos (CPF, defaults de query publica e validacao de role admin).
+- `src/index.ts` — SSOT de schemas Zod dos dominios Auth, Events, Programs, Dynamic Form, Registrations e Attendance Intents.
+- `src/index.spec.ts` — Testes de contratos (CPF, defaults, registration mode, dynamic form e validacoes de CTA/schema).
+- `vitest.config.ts` — Config do Vitest priorizando fontes `.ts` em `src/`.
 
 ## packages/utils
 - `src/index.ts` — Helpers puros (`formatDateBR`, `truncate`).
 - `src/index.spec.ts` — Testes unitarios dos helpers puros.
 
 ## prisma
-- `schema.prisma` — Modelos do dominio de usuarios, eventos e inscricoes.
+- `schema.prisma` — Modelos do dominio com eventos/programas, modos de inscricao, `form_data` e `event_attendance_intents`.
+- `migrations/20260224123000_super_admin_form_builder_attendance` — Migration da Fase Super Admin (registration mode, dynamic schema e intents).
 
 ## Testes de integracao relevantes
 - `apps/api/src/admin/events/admin-events.spec.ts` — Cobre `GET /v1/admin/events/:id` (sucesso, 404 e acesso negado para cidadao).
+- `apps/api/src/super-admin-plan.spec.ts` — Cobre fluxo integrado de eventos/programas, inscricao com `formData` e attendance intents.
 
 ## Documentacao
 - `.context/docs/AI-GOVERNANCE.md` — Guardrails AI/contract-first.

@@ -1,5 +1,4 @@
 import {
-  type PublicEventDetailResponse,
   type PublicEventsRequest,
   PublicEventsRequestSchema,
   type PublicEventsResponse,
@@ -7,6 +6,7 @@ import {
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { DynamicFormSchema } from '../../shared/super-admin.schemas';
 
 @Injectable()
 export class PublicEventsService {
@@ -50,6 +50,9 @@ export class PublicEventsService {
           bannerUrl: true,
           bannerAltText: true,
           totalSlots: true,
+          registrationMode: true,
+          externalCtaLabel: true,
+          externalCtaUrl: true,
           _count: { select: { registrations: { where: { status: 'confirmed' } } } },
         },
       }),
@@ -67,6 +70,9 @@ export class PublicEventsService {
         bannerUrl: e.bannerUrl,
         bannerAltText: e.bannerAltText,
         availableSlots: e.totalSlots === null ? null : e.totalSlots - e._count.registrations,
+        registrationMode: e.registrationMode,
+        externalCtaLabel: e.externalCtaLabel,
+        externalCtaUrl: e.externalCtaUrl,
       })),
       meta: {
         page,
@@ -77,12 +83,17 @@ export class PublicEventsService {
     };
   }
 
-  async getEventBySlug(slug: string): Promise<PublicEventDetailResponse> {
+  async getEventBySlug(slug: string) {
     const event = await this.prisma.event.findFirst({
       where: { slug, status: 'published' },
       include: {
         images: { orderBy: { displayOrder: 'asc' } },
-        _count: { select: { registrations: { where: { status: 'confirmed' } } } },
+        _count: {
+          select: {
+            registrations: { where: { status: 'confirmed' } },
+            attendanceIntents: true,
+          },
+        },
       },
     });
 
@@ -107,6 +118,11 @@ export class PublicEventsService {
         status: event.status,
         availableSlots:
           event.totalSlots === null ? null : event.totalSlots - event._count.registrations,
+        registrationMode: event.registrationMode,
+        externalCtaLabel: event.externalCtaLabel,
+        externalCtaUrl: event.externalCtaUrl,
+        dynamicFormSchema: this.mapDynamicFormSchema(event.dynamicFormSchema),
+        attendanceIntentCount: event._count.attendanceIntents,
         images: event.images.map((img) => ({
           id: img.id,
           imageUrl: img.imageUrl,
@@ -116,5 +132,11 @@ export class PublicEventsService {
         createdAt: event.createdAt.toISOString(),
       },
     };
+  }
+
+  private mapDynamicFormSchema(dynamicFormSchema: Prisma.JsonValue | null) {
+    if (dynamicFormSchema === null) return null;
+    const parsed = DynamicFormSchema.safeParse(dynamicFormSchema);
+    return parsed.success ? parsed.data : null;
   }
 }

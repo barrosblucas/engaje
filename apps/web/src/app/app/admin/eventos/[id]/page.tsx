@@ -1,18 +1,37 @@
 'use client';
 
+import { DynamicFormBuilder } from '@/components/dynamic-form/dynamic-form-builder';
+import { DynamicFormPreview } from '@/components/dynamic-form/dynamic-form-preview';
+import { RichTextEditor } from '@/components/editor/rich-text-editor';
+import {
+  type BuilderFieldDraft,
+  deserializeDynamicFormSchema,
+  serializeBuilderFields,
+  validateBuilderFieldsByMode,
+} from '@/shared/dynamic-form/builder-utils';
 import {
   useAdminEvent,
+  useAdminImageUpload,
   useCreateEvent,
   useUpdateEvent,
   useUpdateEventStatus,
 } from '@/shared/hooks/use-admin';
-import type { CreateEventInput } from '@engaje/contracts';
+import type { CreateEventInput, RegistrationMode, UpdateEventInput } from '@engaje/contracts';
 import { useRouter } from 'next/navigation';
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useMemo, useState } from 'react';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
+
+type StepId = 'base' | 'content' | 'mode' | 'builder';
+
+const STEPS: Array<{ id: StepId; label: string }> = [
+  { id: 'base', label: 'Dados base' },
+  { id: 'content', label: 'Conteúdo público' },
+  { id: 'mode', label: 'Inscrição / Informativo' },
+  { id: 'builder', label: 'Builder de campos' },
+];
 
 const CATEGORIES = [
   { value: 'cultura', label: 'Cultura' },
@@ -39,6 +58,11 @@ type EventFormData = {
   locationName: string;
   locationAddress: string;
   totalSlots: string;
+  bannerUrl: string;
+  bannerAltText: string;
+  registrationMode: RegistrationMode;
+  externalCtaLabel: string;
+  externalCtaUrl: string;
 };
 
 const EMPTY_FORM: EventFormData = {
@@ -50,7 +74,36 @@ const EMPTY_FORM: EventFormData = {
   locationName: '',
   locationAddress: '',
   totalSlots: '',
+  bannerUrl: '',
+  bannerAltText: '',
+  registrationMode: 'registration',
+  externalCtaLabel: '',
+  externalCtaUrl: '',
 };
+
+function toDateTimeLocal(value?: string | null): string {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const timezoneOffsetMs = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
+}
+
+function toIsoDateTime(value: string): string {
+  return new Date(value).toISOString();
+}
+
+function hasMeaningfulRichText(rawHtml: string): boolean {
+  return (
+    rawHtml
+      .replace(/<[^>]*>/g, ' ')
+      .replaceAll('&nbsp;', ' ')
+      .replace(/\s+/g, ' ')
+      .trim().length > 0
+  );
+}
 
 export default function AdminEventoFormPage({ params }: PageProps) {
   const { id } = use(params);
@@ -58,100 +111,217 @@ export default function AdminEventoFormPage({ params }: PageProps) {
   const router = useRouter();
 
   const [form, setForm] = useState<EventFormData>(EMPTY_FORM);
+  const [builderFields, setBuilderFields] = useState<BuilderFieldDraft[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [activeStep, setActiveStep] = useState<StepId>('base');
   const [currentStatus, setCurrentStatus] = useState<string>('draft');
 
   const { data: existing, isLoading } = useAdminEvent(isNew ? '' : id);
   const { mutate: createEvent, isPending: creating } = useCreateEvent();
   const { mutate: updateEvent, isPending: updating } = useUpdateEvent(id);
   const { mutate: updateStatus, isPending: updatingStatus } = useUpdateEventStatus(id);
+  const { mutateAsync: uploadImage, isPending: uploadingImage } = useAdminImageUpload();
 
   useEffect(() => {
-    if (existing && !isNew) {
-      const ev = existing as Record<string, unknown>;
-      setForm({
-        title: String(ev.title ?? ''),
-        description: String(ev.description ?? ''),
-        category: String(ev.category ?? 'cultura'),
-        startDate: ev.startDate ? String(ev.startDate).slice(0, 16) : '',
-        endDate: ev.endDate ? String(ev.endDate).slice(0, 16) : '',
-        locationName: String(ev.locationName ?? ''),
-        locationAddress: String(ev.locationAddress ?? ''),
-        totalSlots: String(ev.totalSlots ?? ''),
-      });
-      setCurrentStatus(String(ev.status ?? 'draft'));
-    }
+    if (!existing || isNew) return;
+
+    setForm({
+      title: existing.title,
+      description: existing.description ?? '',
+      category: existing.category,
+      startDate: toDateTimeLocal(existing.startDate),
+      endDate: toDateTimeLocal(existing.endDate),
+      locationName: existing.locationName,
+      locationAddress: existing.locationAddress,
+      totalSlots: existing.totalSlots === null ? '' : String(existing.totalSlots),
+      bannerUrl: existing.bannerUrl ?? '',
+      bannerAltText: existing.bannerAltText ?? '',
+      registrationMode: existing.registrationMode,
+      externalCtaLabel: existing.externalCtaLabel ?? '',
+      externalCtaUrl: existing.externalCtaUrl ?? '',
+    });
+
+    setBuilderFields(deserializeDynamicFormSchema(existing.dynamicFormSchema));
+    setCurrentStatus(existing.status);
   }, [existing, isNew]);
 
+  const previewSchema = useMemo(() => serializeBuilderFields(builderFields), [builderFields]);
+
   function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
   }
 
-  function buildPayload(): CreateEventInput {
+  function handleDescriptionChange(nextHtml: string) {
+    setForm((current) => ({ ...current, description: nextHtml }));
+  }
+
+  async function uploadAdminImage(file: File): Promise<string> {
+    const uploaded = await uploadImage(file);
+    return uploaded.url;
+  }
+
+  async function handleBannerFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    setError(null);
+    try {
+      const bannerUrl = await uploadAdminImage(file);
+      setForm((current) => ({ ...current, bannerUrl }));
+    } catch {
+      setError('Erro ao enviar banner. Verifique o formato e tamanho da imagem.');
+    }
+  }
+
+  function parseTotalSlotsForCreate(): number | undefined {
+    if (form.totalSlots.trim() === '') return undefined;
+    return Number(form.totalSlots);
+  }
+
+  function parseTotalSlotsForUpdate(): number | null {
+    if (form.totalSlots.trim() === '') return null;
+    return Number(form.totalSlots);
+  }
+
+  function validateBeforeSubmit(): boolean {
+    if (!form.title.trim()) {
+      setError('Título é obrigatório.');
+      setActiveStep('base');
+      return false;
+    }
+
+    if (!hasMeaningfulRichText(form.description)) {
+      setError('Descrição é obrigatória.');
+      setActiveStep('content');
+      return false;
+    }
+
+    if (!form.startDate || !form.endDate) {
+      setError('Data de início e término são obrigatórias.');
+      setActiveStep('base');
+      return false;
+    }
+
+    if (new Date(form.startDate) > new Date(form.endDate)) {
+      setError('Data de início não pode ser posterior à data de término.');
+      setActiveStep('base');
+      return false;
+    }
+
+    if (form.totalSlots && Number(form.totalSlots) < 1) {
+      setError('Total de vagas deve ser maior que zero.');
+      setActiveStep('base');
+      return false;
+    }
+
+    const hasExternalLabel = form.externalCtaLabel.trim().length > 0;
+    const hasExternalUrl = form.externalCtaUrl.trim().length > 0;
+
+    if (hasExternalLabel !== hasExternalUrl) {
+      setError('CTA externo exige rótulo e URL juntos.');
+      setActiveStep('mode');
+      return false;
+    }
+
+    const dynamicValidation = validateBuilderFieldsByMode(form.registrationMode, builderFields);
+
+    if (!dynamicValidation.isValid) {
+      setError(dynamicValidation.issues[0] ?? 'Formulário dinâmico inválido.');
+      setActiveStep('builder');
+      return false;
+    }
+
+    return true;
+  }
+
+  function buildCreatePayload(): CreateEventInput {
+    const dynamicSchema = serializeBuilderFields(builderFields);
+    const isInformativeMode = form.registrationMode === 'informative';
+
     return {
-      title: form.title,
-      description: form.description,
+      title: form.title.trim(),
+      description: form.description.trim(),
       category: form.category as CreateEventInput['category'],
-      startDate: new Date(form.startDate).toISOString(),
-      endDate: new Date(form.endDate).toISOString(),
-      locationName: form.locationName,
-      locationAddress: form.locationAddress,
-      totalSlots: form.totalSlots ? Number(form.totalSlots) : undefined,
+      startDate: toIsoDateTime(form.startDate),
+      endDate: toIsoDateTime(form.endDate),
+      locationName: form.locationName.trim(),
+      locationAddress: form.locationAddress.trim(),
+      totalSlots: parseTotalSlotsForCreate(),
+      bannerUrl: form.bannerUrl.trim() || undefined,
+      bannerAltText: form.bannerAltText.trim() || undefined,
+      registrationMode: form.registrationMode,
+      externalCtaLabel: isInformativeMode ? form.externalCtaLabel.trim() || undefined : undefined,
+      externalCtaUrl: isInformativeMode ? form.externalCtaUrl.trim() || undefined : undefined,
+      dynamicFormSchema: isInformativeMode ? undefined : dynamicSchema,
       status: currentStatus as CreateEventInput['status'],
     };
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function buildUpdatePayload(): UpdateEventInput {
+    const dynamicSchema = serializeBuilderFields(builderFields);
+    const isInformativeMode = form.registrationMode === 'informative';
+
+    return {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      category: form.category as UpdateEventInput['category'],
+      startDate: toIsoDateTime(form.startDate),
+      endDate: toIsoDateTime(form.endDate),
+      locationName: form.locationName.trim(),
+      locationAddress: form.locationAddress.trim(),
+      totalSlots: parseTotalSlotsForUpdate(),
+      bannerUrl: form.bannerUrl.trim() || null,
+      bannerAltText: form.bannerAltText.trim() || null,
+      registrationMode: form.registrationMode,
+      externalCtaLabel: isInformativeMode ? form.externalCtaLabel.trim() || null : null,
+      externalCtaUrl: isInformativeMode ? form.externalCtaUrl.trim() || null : null,
+      dynamicFormSchema: isInformativeMode ? null : (dynamicSchema ?? null),
+      status: currentStatus as UpdateEventInput['status'],
+    };
+  }
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setError(null);
 
-    if (!form.description.trim()) {
-      setError('Descrição é obrigatória.');
-      return;
-    }
-
-    if (!form.endDate) {
-      setError('Data de término é obrigatória.');
-      return;
-    }
-
-    if (Number(form.totalSlots) < 1 && form.totalSlots !== '') {
-      setError('Total de vagas deve ser maior que zero.');
-      return;
-    }
-
-    const payload = buildPayload();
+    if (!validateBeforeSubmit()) return;
 
     if (isNew) {
-      createEvent(payload, {
+      createEvent(buildCreatePayload(), {
         onSuccess: () => router.push('/app/admin/eventos'),
         onError: () => setError('Erro ao criar evento.'),
       });
-    } else {
-      updateEvent(payload, {
-        onSuccess: () => router.push('/app/admin/eventos'),
-        onError: () => setError('Erro ao atualizar evento.'),
-      });
+      return;
     }
+
+    updateEvent(buildUpdatePayload(), {
+      onSuccess: () => router.push('/app/admin/eventos'),
+      onError: () => setError('Erro ao atualizar evento.'),
+    });
   }
 
-  function handleStatusChange(newStatus: string) {
-    if (!confirm(`Alterar status para "${newStatus}"?`)) return;
+  function handleStatusChange(nextStatus: string) {
+    if (!confirm(`Alterar status para "${nextStatus}"?`)) return;
+
     updateStatus(
-      { status: newStatus as 'published' | 'closed' | 'cancelled' },
+      { status: nextStatus as 'published' | 'closed' | 'cancelled' },
       {
-        onSuccess: () => setCurrentStatus(newStatus),
+        onSuccess: () => setCurrentStatus(nextStatus),
         onError: () => setError('Erro ao alterar status.'),
       },
     );
   }
 
-  if (!isNew && isLoading) return <p>Carregando...</p>;
+  if (!isNew && isLoading) {
+    return <p>Carregando...</p>;
+  }
 
   const transitions = STATUS_TRANSITIONS[currentStatus] ?? [];
+  const stepIndex = STEPS.findIndex((step) => step.id === activeStep);
 
   return (
     <div className="app-page">
@@ -163,137 +333,308 @@ export default function AdminEventoFormPage({ params }: PageProps) {
           </a>
         </div>
 
-        {/* Status transitions (edit only) */}
-        {!isNew && transitions.length > 0 && (
-          <div className="status-actions">
+        {!isNew && transitions.length > 0 ? (
+          <div className="status-actions mb-4">
             <strong>Status atual: {currentStatus}</strong>
-            {transitions.map((s) => (
+            {transitions.map((status) => (
               <button
-                key={s}
+                key={status}
                 type="button"
-                onClick={() => handleStatusChange(s)}
+                onClick={() => handleStatusChange(status)}
                 disabled={updatingStatus}
                 className="btn-secondary"
               >
-                → {s}
+                → {status}
               </button>
             ))}
           </div>
-        )}
+        ) : null}
 
-        <form onSubmit={handleSubmit} className="admin-form">
-          <div className="field">
-            <label htmlFor="title">Título *</label>
-            <input
-              id="title"
-              name="title"
-              type="text"
-              value={form.title}
-              onChange={handleChange}
-              required
-              minLength={3}
-            />
-          </div>
+        <div className="mb-4 flex flex-wrap gap-2">
+          {STEPS.map((step, index) => (
+            <button
+              key={step.id}
+              type="button"
+              className={activeStep === step.id ? 'btn-primary' : 'btn-secondary'}
+              onClick={() => setActiveStep(step.id)}
+            >
+              {index + 1}. {step.label}
+            </button>
+          ))}
+        </div>
 
-          <div className="field">
-            <label htmlFor="description">Descrição</label>
-            <textarea
-              id="description"
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              rows={4}
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="admin-form p-4 sm:p-6">
+          {activeStep === 'base' ? (
+            <section className="space-y-4">
+              <div className="field">
+                <label htmlFor="title">Título *</label>
+                <input
+                  id="title"
+                  name="title"
+                  value={form.title}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <div className="field-row">
-            <div className="field">
-              <label htmlFor="category">Categoria *</label>
-              <select
-                id="category"
-                name="category"
-                value={form.category}
-                onChange={handleChange}
-                required
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="category">Categoria *</label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={form.category}
+                    onChange={handleChange}
+                    required
+                  >
+                    {CATEGORIES.map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="field">
+                  <label htmlFor="totalSlots">Total de vagas</label>
+                  <input
+                    id="totalSlots"
+                    name="totalSlots"
+                    type="number"
+                    min="1"
+                    value={form.totalSlots}
+                    onChange={handleChange}
+                    placeholder="Vazio = ilimitado"
+                  />
+                </div>
+              </div>
+
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="startDate">Data de início *</label>
+                  <input
+                    id="startDate"
+                    name="startDate"
+                    type="datetime-local"
+                    value={form.startDate}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="endDate">Data de término *</label>
+                  <input
+                    id="endDate"
+                    name="endDate"
+                    type="datetime-local"
+                    value={form.endDate}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="field">
+                <label htmlFor="locationName">Local *</label>
+                <input
+                  id="locationName"
+                  name="locationName"
+                  value={form.locationName}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="locationAddress">Endereço *</label>
+                <input
+                  id="locationAddress"
+                  name="locationAddress"
+                  value={form.locationAddress}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </section>
+          ) : null}
+
+          {activeStep === 'content' ? (
+            <section className="space-y-4">
+              <div className="field">
+                <label htmlFor="description">Descrição pública *</label>
+                <RichTextEditor
+                  value={form.description}
+                  onChange={handleDescriptionChange}
+                  onUploadImage={async (file) => {
+                    setError(null);
+                    try {
+                      return await uploadAdminImage(file);
+                    } catch {
+                      setError(
+                        'Erro ao enviar imagem da descrição. Verifique o formato e tamanho.',
+                      );
+                      throw new Error('Upload da imagem da descrição falhou');
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="bannerUpload">Banner do evento</label>
+                <input
+                  id="bannerUpload"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleBannerFileChange}
+                  disabled={uploadingImage}
+                />
+                <p className="mt-1 text-xs text-slate-500">
+                  Formatos: JPG, PNG ou WebP. Tamanho máximo: 2MB.
+                </p>
+
+                {form.bannerUrl ? (
+                  <div className="mt-3 space-y-2">
+                    <img
+                      src={form.bannerUrl}
+                      alt={form.bannerAltText || 'Prévia do banner do evento'}
+                      className="max-h-52 w-full rounded-2xl border border-slate-200 object-cover"
+                    />
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => setForm((current) => ({ ...current, bannerUrl: '' }))}
+                    >
+                      Remover banner
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="field">
+                <label htmlFor="bannerAltText">Texto alternativo do banner</label>
+                <input
+                  id="bannerAltText"
+                  name="bannerAltText"
+                  value={form.bannerAltText}
+                  onChange={handleChange}
+                  placeholder="Descrição para acessibilidade"
+                />
+              </div>
+            </section>
+          ) : null}
+
+          {activeStep === 'mode' ? (
+            <section className="space-y-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-semibold text-slate-800">Modo de publicação</p>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">
+                    <input
+                      type="radio"
+                      name="registrationMode"
+                      value="registration"
+                      checked={form.registrationMode === 'registration'}
+                      onChange={handleChange}
+                    />
+                    Inscrição
+                  </label>
+
+                  <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">
+                    <input
+                      type="radio"
+                      name="registrationMode"
+                      value="informative"
+                      checked={form.registrationMode === 'informative'}
+                      onChange={handleChange}
+                    />
+                    Informativo
+                  </label>
+                </div>
+
+                <p className="mt-3 text-xs text-slate-500">
+                  Modo informativo não exibe botão de inscrição. Modo inscrição exige formulário
+                  dinâmico válido.
+                </p>
+              </div>
+
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="externalCtaLabel">Rótulo CTA externo</label>
+                  <input
+                    id="externalCtaLabel"
+                    name="externalCtaLabel"
+                    value={form.externalCtaLabel}
+                    onChange={handleChange}
+                    placeholder="Ex: Saiba mais"
+                    disabled={form.registrationMode !== 'informative'}
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="externalCtaUrl">URL CTA externo</label>
+                  <input
+                    id="externalCtaUrl"
+                    name="externalCtaUrl"
+                    type="url"
+                    value={form.externalCtaUrl}
+                    onChange={handleChange}
+                    placeholder="https://..."
+                    disabled={form.registrationMode !== 'informative'}
+                  />
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {activeStep === 'builder' ? (
+            <section className="space-y-4">
+              <DynamicFormBuilder fields={builderFields} onChange={setBuilderFields} />
+              <DynamicFormPreview mode={form.registrationMode} schema={previewSchema} />
+            </section>
+          ) : null}
+
+          {error ? <div className="form-error mt-4">{error}</div> : null}
+
+          <div className="form-actions mt-5 flex-wrap justify-between">
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  const previousStep = STEPS[stepIndex - 1];
+                  if (previousStep) setActiveStep(previousStep.id);
+                }}
+                disabled={stepIndex <= 0}
               >
-                {CATEGORIES.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+                ← Etapa anterior
+              </button>
+
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  const nextStep = STEPS[stepIndex + 1];
+                  if (nextStep) setActiveStep(nextStep.id);
+                }}
+                disabled={stepIndex >= STEPS.length - 1}
+              >
+                Próxima etapa →
+              </button>
             </div>
 
-            <div className="field">
-              <label htmlFor="totalSlots">Total de vagas *</label>
-              <input
-                id="totalSlots"
-                name="totalSlots"
-                type="number"
-                min="1"
-                value={form.totalSlots}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="field-row">
-            <div className="field">
-              <label htmlFor="startDate">Data de início *</label>
-              <input
-                id="startDate"
-                name="startDate"
-                type="datetime-local"
-                value={form.startDate}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="field">
-              <label htmlFor="endDate">Data de término</label>
-              <input
-                id="endDate"
-                name="endDate"
-                type="datetime-local"
-                value={form.endDate}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="field">
-            <label htmlFor="locationName">Local *</label>
-            <input
-              id="locationName"
-              name="locationName"
-              type="text"
-              value={form.locationName}
-              onChange={handleChange}
-              required
-              minLength={2}
-            />
-          </div>
-
-          <div className="field">
-            <label htmlFor="locationAddress">Endereço completo *</label>
-            <input
-              id="locationAddress"
-              name="locationAddress"
-              type="text"
-              value={form.locationAddress}
-              onChange={handleChange}
-              required
-              minLength={5}
-            />
-          </div>
-
-          {error && <div className="form-error">{error}</div>}
-
-          <div className="form-actions">
-            <button type="submit" className="btn-primary" disabled={creating || updating}>
-              {creating || updating ? 'Salvando...' : isNew ? 'Criar evento' : 'Salvar alterações'}
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={creating || updating || uploadingImage}
+            >
+              {creating || updating
+                ? 'Salvando...'
+                : uploadingImage
+                  ? 'Enviando imagem...'
+                  : isNew
+                    ? 'Criar evento'
+                    : 'Salvar alterações'}
             </button>
           </div>
         </form>

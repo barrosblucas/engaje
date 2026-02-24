@@ -1,23 +1,24 @@
 import {
   type AdminEventListRequest,
   AdminEventListRequestSchema,
-  type AdminEventListResponse,
-  type AdminEventSummary,
   AdminRegistrationsRequestSchema,
   type AdminRegistrationsResponse,
-  type CreateEventInput,
-  CreateEventInputSchema,
-  type UpdateEventInput,
-  UpdateEventInputSchema,
   UpdateEventStatusInputSchema,
 } from '@engaje/contracts';
-import type { EventDetail } from '@engaje/contracts';
 import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 import type { Prisma, RegistrationStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { formatCpf } from '../../shared/cpf.util';
+import { extractPlainTextFromHtml, sanitizeRichTextHtml } from '../../shared/rich-text-sanitizer';
 import { generateSlug, generateUniqueSlug } from '../../shared/slug.util';
+import {
+  type CreateEventWithModeInput,
+  CreateEventWithModeInputSchema,
+  DynamicFormSchema,
+  type UpdateEventWithModeInput,
+  UpdateEventWithModeInputSchema,
+} from '../../shared/super-admin.schemas';
 
 /** Transições de status válidas para eventos. */
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -30,7 +31,7 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
 type EventWithDetails = Prisma.EventGetPayload<{
   include: {
     images: true;
-    _count: { select: { registrations: true } };
+    _count: { select: { registrations: true; attendanceIntents: true } };
   };
 }>;
 
@@ -38,12 +39,17 @@ type EventWithDetails = Prisma.EventGetPayload<{
 export class AdminEventsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getEventById(eventId: string): Promise<EventDetail> {
+  async getEventById(eventId: string) {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
       include: {
         images: true,
-        _count: { select: { registrations: { where: { status: 'confirmed' } } } },
+        _count: {
+          select: {
+            registrations: { where: { status: 'confirmed' } },
+            attendanceIntents: true,
+          },
+        },
       },
     });
 
@@ -60,12 +66,14 @@ export class AdminEventsService {
     return event?.slug ?? null;
   }
 
-  async createEvent(
-    input: CreateEventInput,
-    createdById: string,
-    bannerUrl?: string,
-  ): Promise<EventDetail> {
-    const parsed = CreateEventInputSchema.parse(input);
+  async createEvent(input: CreateEventWithModeInput, createdById: string) {
+    const parsed = CreateEventWithModeInputSchema.parse(input);
+    const sanitizedDescription = sanitizeRichTextHtml(parsed.description);
+
+    if (extractPlainTextFromHtml(sanitizedDescription).length === 0) {
+      throw new UnprocessableEntityException('Descrição pública inválida');
+    }
+
     const baseSlug = generateSlug(parsed.title);
 
     const existingSlug = await this.prisma.event.findUnique({
@@ -78,7 +86,7 @@ export class AdminEventsService {
       data: {
         title: parsed.title,
         slug,
-        description: parsed.description,
+        description: sanitizedDescription,
         category: parsed.category,
         startDate: new Date(parsed.startDate),
         endDate: new Date(parsed.endDate),
@@ -87,27 +95,40 @@ export class AdminEventsService {
         locationLat: parsed.locationLat,
         locationLng: parsed.locationLng,
         totalSlots: parsed.totalSlots,
-        bannerUrl: bannerUrl ?? null,
+        bannerUrl: parsed.bannerUrl ?? null,
         bannerAltText: parsed.bannerAltText,
+        registrationMode: parsed.registrationMode,
+        externalCtaLabel: parsed.externalCtaLabel ?? null,
+        externalCtaUrl: parsed.externalCtaUrl ?? null,
+        dynamicFormSchema: parsed.dynamicFormSchema
+          ? (parsed.dynamicFormSchema as Prisma.InputJsonValue)
+          : undefined,
         status: parsed.status ?? 'draft',
         createdById,
       },
       include: {
         images: true,
-        _count: { select: { registrations: { where: { status: 'confirmed' } } } },
+        _count: {
+          select: {
+            registrations: { where: { status: 'confirmed' } },
+            attendanceIntents: true,
+          },
+        },
       },
     });
 
     return this.mapEventToDetail(event);
   }
 
-  async updateEvent(id: string, input: UpdateEventInput, bannerUrl?: string): Promise<EventDetail> {
-    const parsed = UpdateEventInputSchema.parse(input);
+  async updateEvent(id: string, input: UpdateEventWithModeInput) {
+    const parsed = UpdateEventWithModeInputSchema.parse(input);
 
     const existing = await this.prisma.event.findUnique({
       where: { id },
       select: {
         id: true,
+        registrationMode: true,
+        dynamicFormSchema: true,
         totalSlots: true,
         _count: { select: { registrations: { where: { status: 'confirmed' } } } },
       },
@@ -124,24 +145,50 @@ export class AdminEventsService {
       );
     }
 
+    const nextRegistrationMode = parsed.registrationMode ?? existing.registrationMode;
+    const nextDynamicFormSchema =
+      parsed.dynamicFormSchema === undefined
+        ? existing.dynamicFormSchema
+        : parsed.dynamicFormSchema;
+
+    if (nextRegistrationMode === 'registration') {
+      const nextFormSchemaParsed = DynamicFormSchema.safeParse(nextDynamicFormSchema);
+      if (!nextFormSchemaParsed.success || nextFormSchemaParsed.data.fields.length === 0) {
+        throw new UnprocessableEntityException(
+          'Modo registration exige formulário dinâmico válido',
+        );
+      }
+    }
+
     const data: Record<string, unknown> = { ...parsed };
     if (parsed.startDate) data.startDate = new Date(parsed.startDate);
     if (parsed.endDate) data.endDate = new Date(parsed.endDate);
-    if (bannerUrl) data.bannerUrl = bannerUrl;
+    if (parsed.description !== undefined) {
+      const sanitizedDescription = sanitizeRichTextHtml(parsed.description);
+      if (extractPlainTextFromHtml(sanitizedDescription).length === 0) {
+        throw new UnprocessableEntityException('Descrição pública inválida');
+      }
+      data.description = sanitizedDescription;
+    }
 
     const event = await this.prisma.event.update({
       where: { id },
       data,
       include: {
         images: true,
-        _count: { select: { registrations: { where: { status: 'confirmed' } } } },
+        _count: {
+          select: {
+            registrations: { where: { status: 'confirmed' } },
+            attendanceIntents: true,
+          },
+        },
       },
     });
 
     return this.mapEventToDetail(event);
   }
 
-  async updateEventStatus(id: string, rawStatus: unknown): Promise<EventDetail> {
+  async updateEventStatus(id: string, rawStatus: unknown) {
     const { status } = UpdateEventStatusInputSchema.parse({ status: rawStatus });
 
     const event = await this.prisma.event.findUnique({
@@ -171,14 +218,19 @@ export class AdminEventsService {
       where: { id },
       include: {
         images: true,
-        _count: { select: { registrations: { where: { status: 'confirmed' } } } },
+        _count: {
+          select: {
+            registrations: { where: { status: 'confirmed' } },
+            attendanceIntents: true,
+          },
+        },
       },
     });
 
     return this.mapEventToDetail(updated);
   }
 
-  async listEvents(query: AdminEventListRequest): Promise<AdminEventListResponse> {
+  async listEvents(query: AdminEventListRequest) {
     const parsed = AdminEventListRequestSchema.parse(query);
     const { page, limit, status, category, search } = parsed;
 
@@ -213,13 +265,14 @@ export class AdminEventsService {
           startDate: true,
           totalSlots: true,
           createdAt: true,
+          registrationMode: true,
           _count: { select: { registrations: { where: { status: 'confirmed' } } } },
         },
       }),
     ]);
 
     return {
-      data: events.map<AdminEventSummary>((e) => ({
+      data: events.map((e) => ({
         id: e.id,
         title: e.title,
         slug: e.slug,
@@ -229,6 +282,7 @@ export class AdminEventsService {
         totalSlots: e.totalSlots,
         registeredCount: e._count.registrations,
         createdAt: e.createdAt.toISOString(),
+        registrationMode: e.registrationMode,
       })),
       meta: {
         page,
@@ -329,7 +383,7 @@ export class AdminEventsService {
     return [header, ...rows].join('\n');
   }
 
-  private mapEventToDetail(event: EventWithDetails): EventDetail {
+  private mapEventToDetail(event: EventWithDetails) {
     return {
       id: event.id,
       title: event.title,
@@ -348,6 +402,11 @@ export class AdminEventsService {
       status: event.status,
       availableSlots:
         event.totalSlots === null ? null : event.totalSlots - event._count.registrations,
+      registrationMode: event.registrationMode,
+      externalCtaLabel: event.externalCtaLabel ?? null,
+      externalCtaUrl: event.externalCtaUrl ?? null,
+      dynamicFormSchema: this.mapDynamicFormSchema(event.dynamicFormSchema),
+      attendanceIntentCount: event._count.attendanceIntents,
       images: event.images.map((img) => ({
         id: img.id,
         imageUrl: img.imageUrl,
@@ -356,5 +415,11 @@ export class AdminEventsService {
       })),
       createdAt: event.createdAt.toISOString(),
     };
+  }
+
+  private mapDynamicFormSchema(dynamicFormSchema: Prisma.JsonValue | null) {
+    if (dynamicFormSchema === null) return null;
+    const parsed = DynamicFormSchema.safeParse(dynamicFormSchema);
+    return parsed.success ? parsed.data : null;
   }
 }

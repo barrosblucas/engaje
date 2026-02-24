@@ -1,4 +1,3 @@
-import { CreateRegistrationInputSchema } from '@engaje/contracts';
 import {
   Body,
   Controller,
@@ -15,6 +14,7 @@ import {
 import type { Request } from 'express';
 import type { UserSession } from '../auth/auth.types';
 import { SessionAuthGuard } from '../auth/session-auth.guard';
+import { CreateRegistrationWithFormDataInputSchema } from '../shared/super-admin.schemas';
 import { RegistrationsService } from './registrations.service';
 
 type AuthenticatedRequest = Request & { user: UserSession };
@@ -27,8 +27,8 @@ export class RegistrationsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(@Body() body: unknown, @Req() req: AuthenticatedRequest) {
-    const { eventId } = CreateRegistrationInputSchema.parse(body);
-    return this.registrationsService.createRegistration(req.user.id, eventId);
+    const { eventId, formData } = CreateRegistrationWithFormDataInputSchema.parse(body);
+    return this.registrationsService.createRegistration(req.user.id, eventId, formData);
   }
 
   @Get()
@@ -38,6 +38,11 @@ export class RegistrationsController {
       Number.parseInt(page, 10),
       Number.parseInt(limit, 10),
     );
+  }
+
+  @Get(':id')
+  detail(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.registrationsService.getUserRegistrationById(req.user.id, id);
   }
 
   @Patch(':id/cancel')

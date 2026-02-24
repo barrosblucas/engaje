@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 describe('Auth (integration)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  const testEmailPattern = 'test-auth';
 
   beforeAll(async () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
@@ -33,12 +34,18 @@ describe('Auth (integration)', () => {
     await app.init();
 
     prisma = moduleRef.get(PrismaService);
+
+    await prisma.registration.deleteMany({
+      where: { user: { email: { contains: testEmailPattern } } },
+    });
+    await prisma.user.deleteMany({ where: { email: { contains: testEmailPattern } } });
   });
 
   afterAll(async () => {
-    await prisma.registration.deleteMany({});
-    await prisma.event.deleteMany({});
-    await prisma.user.deleteMany({ where: { email: { contains: 'test-auth' } } });
+    await prisma.registration.deleteMany({
+      where: { user: { email: { contains: testEmailPattern } } },
+    });
+    await prisma.user.deleteMany({ where: { email: { contains: testEmailPattern } } });
     await app.close();
   });
 

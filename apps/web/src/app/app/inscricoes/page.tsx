@@ -2,6 +2,7 @@
 
 import { useLogout, useMe } from '@/shared/hooks/use-auth';
 import { useCancelRegistration, useUserRegistrations } from '@/shared/hooks/use-events';
+import Link from 'next/link';
 import { useState } from 'react';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -21,6 +22,7 @@ const STATUS_CLASS: Record<string, string> = {
 export default function InscricoesPage() {
   const { data: meData } = useMe();
   const me = meData?.user;
+  const isAdmin = me?.role === 'admin' || me?.role === 'super_admin';
   const { data, isLoading, isError } = useUserRegistrations();
   const { mutate: cancel, isPending: cancelling } = useCancelRegistration();
   const { mutate: logout } = useLogout();
@@ -43,9 +45,15 @@ export default function InscricoesPage() {
             {me && <p className="welcome">Olá, {me.name}</p>}
           </div>
           <div className="header-actions">
-            <a href="/public/eventos" className="btn-secondary">
-              Ver eventos
-            </a>
+            {isAdmin ? (
+              <a href="/app/admin/eventos" className="btn-secondary">
+                Gestão de eventos
+              </a>
+            ) : (
+              <a href="/public/eventos" className="btn-secondary">
+                Ver eventos
+              </a>
+            )}
             <button type="button" onClick={() => logout(undefined)} className="btn-ghost">
               Sair
             </button>
@@ -58,9 +66,15 @@ export default function InscricoesPage() {
         {data && data.data.length === 0 && (
           <div className="empty-state">
             <p>Você ainda não tem inscrições.</p>
-            <a href="/public/eventos" className="btn-primary">
-              Explorar eventos
-            </a>
+            {isAdmin ? (
+              <a href="/app/admin/eventos" className="btn-primary">
+                Ir para gestão de eventos
+              </a>
+            ) : (
+              <a href="/public/eventos" className="btn-primary">
+                Explorar eventos
+              </a>
+            )}
           </div>
         )}
 
@@ -90,6 +104,10 @@ export default function InscricoesPage() {
                   <span className={`status-badge ${STATUS_CLASS[reg.status] ?? ''}`}>
                     {STATUS_LABELS[reg.status] ?? reg.status}
                   </span>
+
+                  <Link href={`/app/inscricoes/${reg.id}`} className="btn-secondary">
+                    Ver comprovante
+                  </Link>
 
                   {reg.status === 'confirmed' && (
                     <button

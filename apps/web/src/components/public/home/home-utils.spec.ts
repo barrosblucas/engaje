@@ -12,6 +12,9 @@ const baseEvent: EventSummary = {
   bannerUrl: null,
   bannerAltText: null,
   availableSlots: 30,
+  registrationMode: 'registration',
+  externalCtaLabel: null,
+  externalCtaUrl: null,
 };
 
 describe('home-utils', () => {

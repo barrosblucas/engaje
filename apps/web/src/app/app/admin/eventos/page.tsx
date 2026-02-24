@@ -26,6 +26,9 @@ export default function AdminEventosPage() {
             {me && <p className="welcome">Admin: {me.name}</p>}
           </div>
           <div className="header-actions">
+            <Link href="/app/admin/programas" className="btn-secondary">
+              Programas
+            </Link>
             <Link href="/app/admin/eventos/novo" className="btn-primary">
               + Novo Evento
             </Link>

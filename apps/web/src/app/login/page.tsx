@@ -1,7 +1,11 @@
 'use client';
 
 import { DotMapCanvas } from '@/app/login/dot-map-canvas';
-import { resolveLoginRedirect } from '@/app/login/login-redirect';
+import {
+  DEFAULT_LOGIN_REDIRECT,
+  resolveLoginRedirect,
+  resolveRoleHomeRedirect,
+} from '@/app/login/login-redirect';
 import { useLogin } from '@/shared/hooks/use-auth';
 import { ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -34,8 +38,13 @@ function LoginPageContent() {
     mutate(
       { identifier, password },
       {
-        onSuccess: () => {
-          router.push(redirect);
+        onSuccess: (data) => {
+          if (redirect !== DEFAULT_LOGIN_REDIRECT) {
+            router.push(redirect);
+            return;
+          }
+
+          router.push(resolveRoleHomeRedirect(data.user.role));
         },
         onError: () => {
           setError('E-mail/CPF ou senha incorretos.');

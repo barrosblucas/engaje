@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_LOGIN_REDIRECT, resolveLoginRedirect } from './login-redirect';
+import {
+  ADMIN_LOGIN_REDIRECT,
+  CITIZEN_LOGIN_REDIRECT,
+  DEFAULT_LOGIN_REDIRECT,
+  resolveLoginRedirect,
+  resolveRoleHomeRedirect,
+} from './login-redirect';
 
 describe('login-redirect', () => {
   it('prioritizes redirect query param', () => {
@@ -25,5 +31,14 @@ describe('login-redirect', () => {
     });
 
     expect(resolveLoginRedirect(params)).toBe(DEFAULT_LOGIN_REDIRECT);
+  });
+
+  it('resolves admin and super admin to admin home', () => {
+    expect(resolveRoleHomeRedirect('admin')).toBe(ADMIN_LOGIN_REDIRECT);
+    expect(resolveRoleHomeRedirect('super_admin')).toBe(ADMIN_LOGIN_REDIRECT);
+  });
+
+  it('resolves citizen to citizen home', () => {
+    expect(resolveRoleHomeRedirect('citizen')).toBe(CITIZEN_LOGIN_REDIRECT);
   });
 });

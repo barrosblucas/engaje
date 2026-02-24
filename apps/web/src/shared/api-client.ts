@@ -34,15 +34,22 @@ class ApiError extends Error {
 async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { body, headers, ...rest } = options;
   const apiUrl = resolveApiUrl();
+  const isFormDataBody = typeof FormData !== 'undefined' && body instanceof FormData;
+  const requestHeaders = new Headers(headers as HeadersInit);
+
+  if (!isFormDataBody && !requestHeaders.has('Content-Type')) {
+    requestHeaders.set('Content-Type', 'application/json');
+  }
 
   const response = await fetch(`${apiUrl}/v1${path}`, {
     ...rest,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    headers: requestHeaders,
+    body: isFormDataBody
+      ? (body as FormData)
+      : body !== undefined
+        ? JSON.stringify(body)
+        : undefined,
   });
 
   if (!response.ok) {

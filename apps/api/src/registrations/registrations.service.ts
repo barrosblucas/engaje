@@ -1,26 +1,43 @@
-import type { CreateRegistrationResponse, UserRegistrationsResponse } from '@engaje/contracts';
+import type { UserRegistrationDetailResponse, UserRegistrationsResponse } from '@engaje/contracts';
 import {
   ConflictException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { generateEventProtocol } from '../shared/protocol.util';
+import { type DynamicFormField, DynamicFormSchema } from '../shared/super-admin.schemas';
 
 @Injectable()
 export class RegistrationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createRegistration(userId: string, eventId: string): Promise<CreateRegistrationResponse> {
+  async createRegistration(userId: string, eventId: string, formData?: Record<string, unknown>) {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
-      select: { id: true, status: true, totalSlots: true },
+      select: {
+        id: true,
+        status: true,
+        totalSlots: true,
+        registrationMode: true,
+        dynamicFormSchema: true,
+      },
     });
 
     if (!event || event.status !== 'published') {
       throw new NotFoundException('Evento não encontrado ou não está publicado');
     }
+
+    if (event.registrationMode === 'informative') {
+      throw new UnprocessableEntityException(
+        'Este evento está em modo informativo e não aceita inscrições',
+      );
+    }
+
+    const dynamicFormSchema = this.parseDynamicFormSchema(event.dynamicFormSchema);
+    this.validateRequiredFields(dynamicFormSchema.fields, formData);
 
     const existing = await this.prisma.registration.findUnique({
       where: { eventId_userId: { eventId, userId } },
@@ -43,13 +60,20 @@ export class RegistrationsService {
 
     const protocolNumber = generateEventProtocol();
     const registration = await this.prisma.registration.create({
-      data: { eventId, userId, protocolNumber, status: 'confirmed' },
+      data: {
+        eventId,
+        userId,
+        protocolNumber,
+        status: 'confirmed',
+        formData: formData ? (formData as Prisma.InputJsonValue) : undefined,
+      },
       select: {
         id: true,
         eventId: true,
         userId: true,
         protocolNumber: true,
         status: true,
+        formData: true,
         createdAt: true,
         cancelledAt: true,
       },
@@ -62,6 +86,7 @@ export class RegistrationsService {
         userId: registration.userId,
         protocolNumber: registration.protocolNumber,
         status: registration.status,
+        formData: this.mapFormData(registration.formData),
         createdAt: registration.createdAt.toISOString(),
         cancelledAt: registration.cancelledAt?.toISOString() ?? null,
       },
@@ -122,6 +147,62 @@ export class RegistrationsService {
     };
   }
 
+  async getUserRegistrationById(
+    userId: string,
+    registrationId: string,
+  ): Promise<UserRegistrationDetailResponse> {
+    const registration = await this.prisma.registration.findFirst({
+      where: { id: registrationId, userId },
+      select: {
+        id: true,
+        protocolNumber: true,
+        status: true,
+        formData: true,
+        createdAt: true,
+        cancelledAt: true,
+        event: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            startDate: true,
+            endDate: true,
+            locationName: true,
+            locationAddress: true,
+            bannerUrl: true,
+            dynamicFormSchema: true,
+          },
+        },
+      },
+    });
+
+    if (!registration) {
+      throw new NotFoundException('Inscrição não encontrada');
+    }
+
+    return {
+      data: {
+        id: registration.id,
+        protocolNumber: registration.protocolNumber,
+        status: registration.status,
+        formData: this.mapFormData(registration.formData),
+        createdAt: registration.createdAt.toISOString(),
+        cancelledAt: registration.cancelledAt?.toISOString() ?? null,
+        event: {
+          id: registration.event.id,
+          title: registration.event.title,
+          slug: registration.event.slug,
+          startDate: registration.event.startDate.toISOString(),
+          endDate: registration.event.endDate.toISOString(),
+          locationName: registration.event.locationName,
+          locationAddress: registration.event.locationAddress,
+          bannerUrl: registration.event.bannerUrl,
+          dynamicFormSchema: this.mapDynamicFormSchema(registration.event.dynamicFormSchema),
+        },
+      },
+    };
+  }
+
   async cancelRegistration(registrationId: string, userId: string): Promise<void> {
     const registration = await this.prisma.registration.findFirst({
       where: { id: registrationId, userId },
@@ -144,5 +225,49 @@ export class RegistrationsService {
       where: { id: registrationId },
       data: { status: 'cancelled', cancelledAt: new Date() },
     });
+  }
+
+  private parseDynamicFormSchema(dynamicFormSchema: Prisma.JsonValue | null) {
+    const parsed = DynamicFormSchema.safeParse(dynamicFormSchema);
+    if (!parsed.success || parsed.data.fields.length === 0) {
+      throw new UnprocessableEntityException('Evento sem formulário de inscrição configurado');
+    }
+    return parsed.data;
+  }
+
+  private validateRequiredFields(
+    fields: DynamicFormField[],
+    formData?: Record<string, unknown>,
+  ): void {
+    const missingRequiredFieldIds = fields
+      .filter((field) => field.required)
+      .filter((field) => !this.isRequiredFieldFilled(field.type, formData?.[field.id]))
+      .map((field) => field.id);
+
+    if (missingRequiredFieldIds.length > 0) {
+      throw new UnprocessableEntityException(
+        `Campos obrigatórios não preenchidos: ${missingRequiredFieldIds.join(', ')}`,
+      );
+    }
+  }
+
+  private isRequiredFieldFilled(type: string, value: unknown): boolean {
+    if (value === undefined || value === null) return false;
+    if ((type === 'checkbox' || type === 'terms') && value !== true) return false;
+    if (typeof value === 'string' && value.trim().length === 0) return false;
+    if (Array.isArray(value) && value.length === 0) return false;
+    return true;
+  }
+
+  private mapFormData(formData: Prisma.JsonValue | null): Record<string, unknown> | null {
+    if (!formData || typeof formData !== 'object' || Array.isArray(formData)) {
+      return null;
+    }
+    return formData as Record<string, unknown>;
+  }
+
+  private mapDynamicFormSchema(dynamicFormSchema: Prisma.JsonValue | null) {
+    const parsed = DynamicFormSchema.safeParse(dynamicFormSchema);
+    return parsed.success ? parsed.data : null;
   }
 }

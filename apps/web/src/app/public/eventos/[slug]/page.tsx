@@ -1,11 +1,13 @@
+import { RichTextContent } from '@/components/editor/rich-text-content';
+import { AttendanceIntentButton } from '@/components/events/attendance-intent-button';
 import { PublicBadge } from '@/components/public/public-badge';
-import { QuickRegistrationForm } from '@/components/registrations/quick-registration-form';
 import {
   formatEventDate,
   formatSlots,
   getCategoryColor,
   getCategoryLabel,
 } from '@/lib/public-events';
+import { stripHtmlForTextPreview } from '@/lib/rich-text';
 import type { PublicEventDetailResponse } from '@engaje/contracts';
 import type { Metadata } from 'next';
 import Image from 'next/image';
@@ -15,14 +17,14 @@ import { notFound } from 'next/navigation';
 const API_BASE = process.env.INTERNAL_API_URL ?? 'http://localhost:3001';
 
 async function fetchEvent(slug: string): Promise<PublicEventDetailResponse | null> {
-  const res = await fetch(`${API_BASE}/v1/public/events/${slug}`, {
+  const response = await fetch(`${API_BASE}/v1/public/events/${slug}`, {
     next: { revalidate: 60 },
   });
 
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Failed to fetch event: ${res.status}`);
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Failed to fetch event: ${response.status}`);
 
-  return res.json() as Promise<PublicEventDetailResponse>;
+  return response.json() as Promise<PublicEventDetailResponse>;
 }
 
 interface PageProps {
@@ -41,10 +43,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${ev.title} | Engajé`,
-    description: ev.description ?? `Participe do evento ${ev.title}.`,
+    description: ev.description
+      ? stripHtmlForTextPreview(ev.description)
+      : `Participe do evento ${ev.title}.`,
     openGraph: {
       title: ev.title,
-      description: ev.description ?? undefined,
+      description: ev.description ? stripHtmlForTextPreview(ev.description) : undefined,
       images: ev.bannerUrl ? [{ url: ev.bannerUrl, width: 1200, height: 630 }] : [],
     },
   };
@@ -59,7 +63,9 @@ export default async function EventDetailPage({ params }: PageProps) {
   const ev = event.data;
   const isFull = ev.availableSlots !== null && ev.availableSlots <= 0;
   const isOpen = ev.status === 'published';
+  const isInformativeMode = ev.registrationMode === 'informative';
   const categoryTone = getCategoryColor(ev.category);
+  const registrationPath = `/app/inscricoes/nova/${slug}`;
 
   return (
     <div className="page-transition pb-24 md:pb-10">
@@ -94,6 +100,9 @@ export default async function EventDetailPage({ params }: PageProps) {
                 <PublicBadge tone={isFull ? 'danger' : 'success'}>
                   {formatSlots(ev.availableSlots)}
                 </PublicBadge>
+                <PublicBadge tone={isInformativeMode ? 'accent' : 'brand'}>
+                  {isInformativeMode ? 'Informativo' : 'Inscrição'}
+                </PublicBadge>
               </div>
 
               <h1 className="mt-3 max-w-3xl font-display text-3xl font-semibold leading-tight sm:text-4xl">
@@ -122,7 +131,9 @@ export default async function EventDetailPage({ params }: PageProps) {
               <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-500">Status</p>
               <p className="mt-1 text-sm font-semibold text-slate-900">
                 {isOpen
-                  ? 'Inscrições abertas'
+                  ? isInformativeMode
+                    ? 'Evento informativo'
+                    : 'Inscrições abertas'
                   : ev.status === 'closed'
                     ? 'Evento encerrado'
                     : 'Indisponível'}
@@ -134,9 +145,7 @@ export default async function EventDetailPage({ params }: PageProps) {
           {ev.description ? (
             <section className="space-y-2">
               <h2 className="font-display text-2xl font-semibold text-slate-900">Sobre o evento</h2>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700 sm:text-base">
-                {ev.description}
-              </p>
+              <RichTextContent html={ev.description} className="text-sm sm:text-base" />
             </section>
           ) : null}
 
@@ -144,14 +153,14 @@ export default async function EventDetailPage({ params }: PageProps) {
             <section className="space-y-3">
               <h2 className="font-display text-2xl font-semibold text-slate-900">Galeria</h2>
               <div className="grid gap-3 sm:grid-cols-2">
-                {ev.images.map((img) => (
+                {ev.images.map((image) => (
                   <div
-                    key={img.id}
+                    key={image.id}
                     className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-slate-200"
                   >
                     <Image
-                      src={img.imageUrl}
-                      alt={img.altText}
+                      src={image.imageUrl}
+                      alt={image.altText}
                       fill
                       sizes="(max-width: 768px) 100vw, 50vw"
                       className="object-cover transition duration-500 hover:scale-105"
@@ -163,11 +172,21 @@ export default async function EventDetailPage({ params }: PageProps) {
           ) : null}
         </article>
 
-        <aside id="inscricao" className="lg:sticky lg:top-24 lg:h-fit">
+        <aside id="inscricao" className="space-y-4 lg:sticky lg:top-24 lg:h-fit">
+          <AttendanceIntentButton
+            eventId={ev.id}
+            initialCount={ev.attendanceIntentCount}
+            redirectPath={`/public/eventos/${slug}`}
+          />
+
           <div className="rounded-3xl border border-brand-200/70 bg-white p-5 shadow-soft sm:p-6">
-            <h2 className="font-display text-2xl font-semibold text-slate-900">Inscrição</h2>
+            <h2 className="font-display text-2xl font-semibold text-slate-900">
+              {isInformativeMode ? 'Informações oficiais' : 'Inscrição'}
+            </h2>
             <p className="mt-2 text-sm text-slate-600">
-              Confirme sua presença e acompanhe o protocolo no seu painel.
+              {isInformativeMode
+                ? 'Este conteúdo é apenas informativo. Utilize o link oficial para continuar.'
+                : 'Preencha o formulário para confirmar sua inscrição.'}
             </p>
 
             <div className="mt-4">
@@ -175,32 +194,69 @@ export default async function EventDetailPage({ params }: PageProps) {
                 <div className="rounded-2xl border border-warning-100 bg-warning-100/65 p-4 text-sm font-medium text-warning-700">
                   {ev.status === 'closed'
                     ? 'As inscrições deste evento foram encerradas.'
-                    : 'Este evento está indisponível para inscrição no momento.'}
+                    : 'Este evento está indisponível no momento.'}
                 </div>
               ) : null}
 
-              {isOpen && isFull ? (
+              {isOpen && !isInformativeMode && isFull ? (
                 <div className="rounded-2xl border border-danger-200 bg-danger-50 p-4 text-sm font-medium text-danger-800">
                   Vagas esgotadas no momento. Acompanhe a agenda para novas turmas.
                 </div>
               ) : null}
 
-              {isOpen && !isFull ? (
-                <QuickRegistrationForm
-                  eventId={ev.id}
-                  eventTitle={ev.title}
-                  redirectPath={`/public/eventos/${slug}`}
-                />
+              {isOpen && !isInformativeMode && !isFull ? (
+                <div className="space-y-4">
+                  <p className="text-sm leading-relaxed text-slate-600">
+                    Faça sua inscrição para garantir sua participação. Ao continuar, você poderá
+                    preencher os campos obrigatórios e confirmar sua vaga.
+                  </p>
+                  <Link
+                    href={registrationPath}
+                    className="action-primary cta-pulse w-full justify-center"
+                  >
+                    Fazer inscrição
+                  </Link>
+                </div>
+              ) : null}
+
+              {isOpen && isInformativeMode ? (
+                ev.externalCtaLabel && ev.externalCtaUrl ? (
+                  <a
+                    href={ev.externalCtaUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="action-primary w-full justify-center"
+                  >
+                    {ev.externalCtaLabel}
+                  </a>
+                ) : (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                    Nenhum link externo configurado para este evento informativo.
+                  </div>
+                )
               ) : null}
             </div>
           </div>
         </aside>
       </section>
 
-      {isOpen && !isFull ? (
+      {isOpen && !isInformativeMode && !isFull ? (
         <div className="fixed inset-x-0 bottom-[4.6rem] z-40 px-4 md:hidden">
-          <a href="#inscricao" className="action-primary cta-pulse w-full justify-center">
-            Inscrever-se agora
+          <Link href={registrationPath} className="action-primary cta-pulse w-full justify-center">
+            Fazer inscrição
+          </Link>
+        </div>
+      ) : null}
+
+      {isOpen && isInformativeMode && ev.externalCtaLabel && ev.externalCtaUrl ? (
+        <div className="fixed inset-x-0 bottom-[4.6rem] z-40 px-4 md:hidden">
+          <a
+            href={ev.externalCtaUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="action-primary cta-pulse w-full justify-center"
+          >
+            {ev.externalCtaLabel}
           </a>
         </div>
       ) : null}

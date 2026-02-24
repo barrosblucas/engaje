@@ -35,6 +35,20 @@ enum EventStatus {
   cancelled
 }
 
+/// Ciclo de vida de um programa governamental.
+enum ProgramStatus {
+  draft
+  published
+  closed
+  cancelled
+}
+
+/// Forma de CTA da página pública.
+enum RegistrationMode {
+  registration
+  informative
+}
+
 /// Status de uma inscrição em evento.
 enum RegistrationStatus {
   confirmed
@@ -47,32 +61,27 @@ enum ProgramRegistrationStatus {
   cancelled
 }
 
-/// Ciclo de vida de um programa governamental.
-enum ProgramStatus {
-  draft
-  published
-  closed
-  cancelled
-}
-
 /// Usuário do sistema — pode ser cidadão ou gestor.
 /// CPF é o identificador único do cidadão e armazenado sem formatação.
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
   /// CPF armazenado sem formatação (apenas dígitos). Único por usuário.
-  cpf           String?   @unique
-  phone         String?
-  passwordHash  String?   @map("password_hash")
-  role          UserRole  @default(citizen)
+  cpf          String?  @unique
+  phone        String?
+  passwordHash String?  @map("password_hash")
+  role         UserRole @default(citizen)
   /// ID do Google para usuários que fizeram login via OAuth.
-  googleId      String?   @unique @map("google_id")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  googleId     String?  @unique @map("google_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  registrations Registration[]
-  eventsCreated Event[]        @relation("EventCreatedBy")
+  registrations        Registration[]
+  eventsCreated        Event[]                @relation("EventCreatedBy")
+  programsCreated      Program[]              @relation("ProgramCreatedBy")
+  programRegistrations ProgramRegistration[]
+  attendanceIntents    EventAttendanceIntent[]
 
   @@index([email])
   @@index([cpf])
@@ -81,30 +90,37 @@ model User {
 
 /// Evento municipal publicado no portal.
 model Event {
-  id              String        @id @default(cuid())
+  id              String           @id @default(cuid())
   title           String
   /// Slug único gerado a partir do título, usado em URLs amigáveis para SEO.
-  slug            String        @unique
+  slug            String           @unique
   description     String
   category        EventCategory
-  startDate       DateTime      @map("start_date")
-  endDate         DateTime      @map("end_date")
-  locationName    String        @map("location_name")
-  locationAddress String        @map("location_address")
-  locationLat     Float?        @map("location_lat")
-  locationLng     Float?        @map("location_lng")
-  bannerUrl       String?       @map("banner_url")
-  bannerAltText   String?       @map("banner_alt_text")
+  startDate       DateTime         @map("start_date")
+  endDate         DateTime         @map("end_date")
+  locationName    String           @map("location_name")
+  locationAddress String           @map("location_address")
+  locationLat     Float?           @map("location_lat")
+  locationLng     Float?           @map("location_lng")
+  bannerUrl       String?          @map("banner_url")
+  bannerAltText   String?          @map("banner_alt_text")
   /// Total de vagas. null = ilimitado.
-  totalSlots      Int?          @map("total_slots")
-  status          EventStatus   @default(draft)
-  createdById     String        @map("created_by")
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
+  totalSlots      Int?             @map("total_slots")
+  registrationMode RegistrationMode @default(registration) @map("registration_mode")
+  /// CTA externo opcional para modo informativo.
+  externalCtaLabel String?         @map("external_cta_label")
+  externalCtaUrl   String?         @map("external_cta_url")
+  /// Definição dos campos do formulário em JSONB.
+  dynamicFormSchema Json?          @map("dynamic_form_schema")
+  status          EventStatus      @default(draft)
+  createdById     String           @map("created_by")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
 
-  createdBy     User             @relation("EventCreatedBy", fields: [createdById], references: [id])
-  registrations Registration[]
-  images        EventImage[]
+  createdBy         User                    @relation("EventCreatedBy", fields: [createdById], references: [id])
+  registrations     Registration[]
+  images            EventImage[]
+  attendanceIntents EventAttendanceIntent[]
 
   @@index([slug])
   @@index([status, startDate])
@@ -114,17 +130,34 @@ model Event {
 
 /// Imagens adicionais de um evento (galeria de fotos).
 model EventImage {
-  id           String  @id @default(cuid())
-  eventId      String  @map("event_id")
-  imageUrl     String  @map("image_url")
+  id           String @id @default(cuid())
+  eventId      String @map("event_id")
+  imageUrl     String @map("image_url")
   /// Alt text obrigatório para WCAG 2.1 AA.
-  altText      String  @map("alt_text")
-  displayOrder Int     @default(0) @map("display_order")
+  altText      String @map("alt_text")
+  displayOrder Int    @default(0) @map("display_order")
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([eventId])
   @@map("event_images")
+}
+
+/// Intenção de presença confirmada de um usuário em evento.
+/// Uma linha por (evento, usuário) para contagem confiável.
+model EventAttendanceIntent {
+  id        String   @id @default(cuid())
+  eventId   String   @map("event_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("event_attendance_intents")
 }
 
 /// Inscrição de um cidadão em um evento.
@@ -136,6 +169,8 @@ model Registration {
   /// Número de protocolo único para identificação da inscrição.
   protocolNumber String             @unique @map("protocol_number")
   status         RegistrationStatus @default(confirmed)
+  /// Respostas preenchidas pelo cidadão no formulário dinâmico.
+  formData       Json?              @map("form_data")
   createdAt      DateTime           @default(now()) @map("created_at")
   cancelledAt    DateTime?          @map("cancelled_at")
 
@@ -148,25 +183,28 @@ model Registration {
   @@map("registrations")
 }
 
-/// Programa governamental com formulário dinâmico (Fase 2).
+/// Programa governamental com página pública e formulário dinâmico opcional.
 model Program {
-  id           String        @id @default(cuid())
-  title        String
-  slug         String        @unique
-  description  String
-  category     EventCategory
-  bannerUrl    String?       @map("banner_url")
-  bannerAltText String?      @map("banner_alt_text")
-  startDate    DateTime      @map("start_date")
-  endDate      DateTime      @map("end_date")
-  totalSlots   Int?          @map("total_slots")
-  status       ProgramStatus @default(draft)
-  /// Definição dos campos do formulário em JSONB (array de FormFieldDefinition).
-  formSchema   Json          @map("form_schema")
-  createdById  String        @map("created_by")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
+  id               String           @id @default(cuid())
+  title            String
+  slug             String           @unique
+  description      String
+  category         EventCategory
+  bannerUrl        String?          @map("banner_url")
+  bannerAltText    String?          @map("banner_alt_text")
+  startDate        DateTime         @map("start_date")
+  endDate          DateTime         @map("end_date")
+  totalSlots       Int?             @map("total_slots")
+  registrationMode RegistrationMode @default(registration) @map("registration_mode")
+  externalCtaLabel String?          @map("external_cta_label")
+  externalCtaUrl   String?          @map("external_cta_url")
+  dynamicFormSchema Json?           @map("dynamic_form_schema")
+  status           ProgramStatus    @default(draft)
+  createdById      String           @map("created_by")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
 
+  createdBy     User                  @relation("ProgramCreatedBy", fields: [createdById], references: [id])
   registrations ProgramRegistration[]
 
   @@index([slug])
@@ -186,10 +224,12 @@ model ProgramRegistration {
   createdAt      DateTime                  @default(now()) @map("created_at")
   cancelledAt    DateTime?                 @map("cancelled_at")
 
-  program Program @relation(fields: [programId], references: [id])
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([programId, userId])
   @@index([programId])
+  @@index([userId])
   @@index([protocolNumber])
   @@map("program_registrations")
 }

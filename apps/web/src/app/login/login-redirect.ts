@@ -1,4 +1,8 @@
+import type { UserRole } from '@engaje/contracts';
+
 export const DEFAULT_LOGIN_REDIRECT = '/app/dashboard';
+export const ADMIN_LOGIN_REDIRECT = '/app/admin/eventos';
+export const CITIZEN_LOGIN_REDIRECT = '/app/inscricoes';
 
 type SearchParamsReader = {
   get: (name: string) => string | null;
@@ -28,4 +32,12 @@ export function resolveLoginRedirect(
     sanitizeRedirectPath(searchParams.get('callbackUrl'));
 
   return preferredPath ?? fallback;
+}
+
+export function resolveRoleHomeRedirect(role: UserRole): string {
+  if (role === 'admin' || role === 'super_admin') {
+    return ADMIN_LOGIN_REDIRECT;
+  }
+
+  return CITIZEN_LOGIN_REDIRECT;
 }

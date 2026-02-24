@@ -2,10 +2,15 @@ import { API_URL, apiClient } from '@/shared/api-client';
 import type {
   AdminEventDetailResponse,
   AdminEventListResponse,
+  AdminProgramDetailResponse,
+  AdminProgramListResponse,
   AdminRegistrationsResponse,
+  AdminUploadImageResponse,
   CreateEventInput,
+  CreateProgramInput,
   UpdateEventInput,
   UpdateEventStatusInput,
+  UpdateProgramInput,
 } from '@engaje/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -17,15 +22,15 @@ export function useAdminEvents(params: {
   status?: string;
   category?: string;
 }) {
-  const qs = new URLSearchParams();
-  if (params.page) qs.set('page', String(params.page));
-  if (params.search) qs.set('search', params.search);
-  if (params.status) qs.set('status', params.status);
-  if (params.category) qs.set('category', params.category);
+  const queryString = new URLSearchParams();
+  if (params.page) queryString.set('page', String(params.page));
+  if (params.search) queryString.set('search', params.search);
+  if (params.status) queryString.set('status', params.status);
+  if (params.category) queryString.set('category', params.category);
 
   return useQuery<AdminEventListResponse>({
     queryKey: ['admin', 'events', params],
-    queryFn: () => apiClient.get<AdminEventListResponse>(`/admin/events?${qs.toString()}`),
+    queryFn: () => apiClient.get<AdminEventListResponse>(`/admin/events?${queryString.toString()}`),
   });
 }
 
@@ -71,18 +76,79 @@ export function useUpdateEventStatus(id: string) {
   });
 }
 
+export function useAdminImageUpload() {
+  return useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return apiClient.post<AdminUploadImageResponse>('/admin/uploads/image', formData);
+    },
+  });
+}
+
+// ─── Admin Programs ───────────────────────────────────────────────────────────
+
+export function useAdminPrograms(params: {
+  page?: number;
+  search?: string;
+  status?: string;
+  category?: string;
+}) {
+  const queryString = new URLSearchParams();
+  if (params.page) queryString.set('page', String(params.page));
+  if (params.search) queryString.set('search', params.search);
+  if (params.status) queryString.set('status', params.status);
+  if (params.category) queryString.set('category', params.category);
+
+  return useQuery<AdminProgramListResponse>({
+    queryKey: ['admin', 'programs', params],
+    queryFn: () =>
+      apiClient.get<AdminProgramListResponse>(`/admin/programs?${queryString.toString()}`),
+  });
+}
+
+export function useAdminProgram(id: string) {
+  return useQuery<AdminProgramDetailResponse>({
+    queryKey: ['admin', 'programs', id],
+    queryFn: () => apiClient.get<AdminProgramDetailResponse>(`/admin/programs/${id}`),
+    enabled: Boolean(id),
+  });
+}
+
+export function useCreateProgram() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateProgramInput) => apiClient.post('/admin/programs', data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'programs'] });
+    },
+  });
+}
+
+export function useUpdateProgram(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateProgramInput) => apiClient.patch(`/admin/programs/${id}`, data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'programs'] });
+    },
+  });
+}
+
 // ─── Admin Registrations ───────────────────────────────────────────────────────
 
 export function useAdminRegistrations(eventId: string, params: { page?: number; search?: string }) {
-  const qs = new URLSearchParams();
-  if (params.page) qs.set('page', String(params.page));
-  if (params.search) qs.set('search', params.search);
+  const queryString = new URLSearchParams();
+  if (params.page) queryString.set('page', String(params.page));
+  if (params.search) queryString.set('search', params.search);
 
   return useQuery<AdminRegistrationsResponse>({
     queryKey: ['admin', 'events', eventId, 'registrations', params],
     queryFn: () =>
       apiClient.get<AdminRegistrationsResponse>(
-        `/admin/events/${eventId}/registrations?${qs.toString()}`,
+        `/admin/events/${eventId}/registrations?${queryString.toString()}`,
       ),
     enabled: Boolean(eventId),
   });
@@ -91,18 +157,20 @@ export function useAdminRegistrations(eventId: string, params: { page?: number; 
 export function useExportRegistrationsCsv(eventId: string) {
   return useMutation({
     mutationFn: async () => {
-      const res = await fetch(`${API_URL}/v1/admin/events/${eventId}/registrations/export`, {
+      const response = await fetch(`${API_URL}/v1/admin/events/${eventId}/registrations/export`, {
         credentials: 'include',
       });
-      if (!res.ok) throw new Error('Export failed');
-      const blob = await res.blob();
+
+      if (!response.ok) throw new Error('Export failed');
+
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `inscricoes-${eventId}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `inscricoes-${eventId}.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
       URL.revokeObjectURL(url);
     },
   });

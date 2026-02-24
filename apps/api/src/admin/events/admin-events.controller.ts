@@ -1,9 +1,4 @@
-import {
-  AdminEventListRequestSchema,
-  AdminRegistrationsRequestSchema,
-  CreateEventInputSchema,
-  UpdateEventInputSchema,
-} from '@engaje/contracts';
+import { AdminEventListRequestSchema, AdminRegistrationsRequestSchema } from '@engaje/contracts';
 import {
   Body,
   Controller,
@@ -26,6 +21,10 @@ import { format } from 'date-fns';
 import type { Request, Response } from 'express';
 import { AdminGuard } from '../../auth/admin.guard';
 import type { UserSession } from '../../auth/auth.types';
+import {
+  CreateEventWithModeInputSchema,
+  UpdateEventWithModeInputSchema,
+} from '../../shared/super-admin.schemas';
 import { AdminEventsService } from './admin-events.service';
 import { AdminImagesService } from './admin-images.service';
 
@@ -52,33 +51,15 @@ export class AdminEventsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(FileInterceptor('banner'))
-  async createEvent(
-    @Body() body: Record<string, unknown>,
-    @Req() req: AuthenticatedRequest,
-    @UploadedFile() banner?: Express.Multer.File,
-  ) {
-    const input = CreateEventInputSchema.parse(body);
-    let bannerUrl: string | undefined;
-    if (banner) {
-      bannerUrl = await this.adminImagesService.saveBanner(banner);
-    }
-    return this.adminEventsService.createEvent(input, req.user.id, bannerUrl);
+  createEvent(@Body() body: Record<string, unknown>, @Req() req: AuthenticatedRequest) {
+    const input = CreateEventWithModeInputSchema.parse(body);
+    return this.adminEventsService.createEvent(input, req.user.id);
   }
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('banner'))
-  async updateEvent(
-    @Param('id') id: string,
-    @Body() body: Record<string, unknown>,
-    @UploadedFile() banner?: Express.Multer.File,
-  ) {
-    const input = UpdateEventInputSchema.parse(body);
-    let bannerUrl: string | undefined;
-    if (banner) {
-      bannerUrl = await this.adminImagesService.saveBanner(banner);
-    }
-    return this.adminEventsService.updateEvent(id, input, bannerUrl);
+  updateEvent(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    const input = UpdateEventWithModeInputSchema.parse(body);
+    return this.adminEventsService.updateEvent(id, input);
   }
 
   @Patch(':id/status')
