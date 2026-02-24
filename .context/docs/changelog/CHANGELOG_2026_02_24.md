@@ -1,5 +1,67 @@
 # CHANGELOG 2026-02-24
 
+## Tarefa 23 — Correção de renderização de citação na visualização
+
+### Objetivo
+Garantir que textos formatados como citação no editor apareçam com estilo de citação também na página de visualização pública.
+
+### Arquivos alterados (principais)
+- `apps/web/src/app/globals.css`
+
+### O que mudou
+- Adicionado estilo para `blockquote` em `.rich-text-content` (barra lateral, recuo e itálico), corrigindo a perda visual da citação na renderização.
+- Aproveitado ajuste para paridade visual do conteúdo rico em visualização com suporte de estilos para `h4`, `code`, `pre` e task list.
+
+### Impacto
+- A marcação de citação criada no editor passa a ser exibida corretamente no front de visualização.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+
+## Tarefa 22 — Menu completo do Tiptap + correção de listas em tempo real
+
+### Objetivo
+Deixar o editor rico do admin com menu completo no estilo Tiptap e corrigir a falta de reflexo visual imediato ao alternar entre lista com marcadores e lista numerada.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/editor/rich-text-editor.tsx`
+- `apps/web/package.json`
+
+### O que mudou
+- Toolbar expandida para padrão completo: undo/redo, dropdown de heading (`H`), dropdown de listas (`Bullet`, `Ordered`, `Task`), negrito, itálico, tachado, código inline, sublinhado, destaque, subscrito, sobrescrito, alinhamentos, citação, link e imagem.
+- Adicionados **diálogos** para link e imagem (inclui inserção por URL e upload de arquivo para imagem).
+- Incluídas extensões oficiais do Tiptap: `underline`, `highlight`, `subscript`, `superscript`, `task-list`, `task-item` e `text-align`.
+- Corrigido reflexo de listas em tempo real com estilos explícitos de conteúdo no editor (`ul/ol/li`), garantindo exibição imediata de bullets/numeração.
+
+### Impacto
+- Editor no admin passa a seguir o comportamento visual e funcional esperado do menu completo do Tiptap.
+- Mantida compatibilidade da API do componente (`value`, `onChange`, `onUploadImage`) com as telas atuais.
+
+### Validação executada
+- `pnpm --filter @engaje/web typecheck` ✅
+
+## Tarefa 21 — Conversão do editor para Simple Editor no admin
+
+### Objetivo
+Substituir o toolbar textual do editor rico no admin por um **Simple Editor** compacto (estilo Tiptap), mantendo o mesmo contrato do componente e upload de imagem já existente.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/editor/rich-text-editor.tsx`
+
+### O que mudou
+- Toolbar do `RichTextEditor` convertida para layout compacto com ícones.
+- Adicionados controles de **desfazer/refazer**.
+- Mantidos os comandos essenciais: parágrafo, título, subtítulo, negrito, itálico, lista, lista numerada, link e imagem.
+- Mantida a API atual do componente (`value`, `onChange`, `onUploadImage`) sem alteração de integração nas telas admin.
+
+### Impacto
+- UX do campo de descrição pública no admin fica mais próxima do padrão “Simple Editor”.
+- Sem mudança de contratos (`packages/contracts`) ou payloads enviados ao backend.
+
+### Validação executada
+- `pnpm --filter @engaje/web typecheck` ✅
+
 ## Tarefa 20 — Tiptap no admin de eventos + correção de carregamento de imagens
 
 ### Objetivo
