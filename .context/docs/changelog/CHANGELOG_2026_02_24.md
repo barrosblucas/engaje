@@ -258,6 +258,43 @@ Eliminar recorrencia de tela sem CSS/JS em desenvolvimento (requests `/_next/sta
   - build/producao: `.next`
 - Com isso, artefatos do `next dev` deixam de colidir com comandos como `build/typecheck` que tambem usam `.next`.
 - `apps/web/tsconfig.json` foi sincronizado para incluir tipos gerados em `.next-dev/types/**/*.ts` (alem de `.next/types/**/*.ts`).
+
+## Tarefa 13 — Correcao de rotas admin no web + endpoint de detalhe no backend
+
+### Objetivo
+Corrigir chamadas quebradas no painel admin causadas por prefixo duplicado (`/v1/v1/...`) e implementar o endpoint ausente de detalhe de evento usado pela tela de edicao.
+
+### Arquivos alterados (principais)
+- `apps/web/src/shared/hooks/use-admin.ts`
+- `apps/api/src/admin/events/admin-events.controller.ts`
+- `apps/api/src/admin/events/admin-events.service.ts`
+- `apps/api/src/admin/events/admin-events.spec.ts` (novo)
+- `packages/contracts/src/index.ts`
+- `packages/contracts/src/index.spec.ts`
+- `.context/docs/PROJECT_STATE.md`
+- `.context/docs/REPOMAP.md`
+
+### O que mudou
+- Corrigidos hooks admin do frontend para usar paths relativos a `api-client` sem repetir `/v1`:
+  - de `/v1/admin/...` para `/admin/...`.
+- Ajustado export CSV admin para chamar explicitamente a API (`API_URL`) mantendo credenciais.
+- Adicionado endpoint autenticado `GET /v1/admin/events/:id` no backend.
+- Adicionado metodo de service para retornar detalhe completo do evento por id com validacao de nao encontrado (`404`).
+- Estendido SSOT de contratos com `AdminEventDetailResponseSchema`.
+- Incluido teste de integracao para a rota nova cobrindo:
+  - acesso admin com sucesso (`200`),
+  - evento inexistente (`404`),
+  - acesso de cidadao autenticado (`403`).
+
+### Impacto
+- Tela de edicao admin volta a carregar dados reais do evento.
+- Eliminadas chamadas HTTP invalidas para `/v1/v1/...`.
+- Regressao protegida por teste de integracao dedicado.
+
+### Validacao executada
+- `pnpm --filter @engaje/contracts test` ✅
+- `pnpm --filter @engaje/web typecheck` ✅
+- `pnpm --filter @engaje/api test -- admin-events.spec.ts` ✅
 - `.next-dev` foi adicionado ao `.gitignore` para evitar ruído no versionamento e lint em arquivos gerados de dev.
 
 ### Impacto

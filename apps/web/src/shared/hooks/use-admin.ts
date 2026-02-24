@@ -1,5 +1,6 @@
-import { apiClient } from '@/shared/api-client';
+import { API_URL, apiClient } from '@/shared/api-client';
 import type {
+  AdminEventDetailResponse,
   AdminEventListResponse,
   AdminRegistrationsResponse,
   CreateEventInput,
@@ -24,14 +25,14 @@ export function useAdminEvents(params: {
 
   return useQuery<AdminEventListResponse>({
     queryKey: ['admin', 'events', params],
-    queryFn: () => apiClient.get<AdminEventListResponse>(`/v1/admin/events?${qs.toString()}`),
+    queryFn: () => apiClient.get<AdminEventListResponse>(`/admin/events?${qs.toString()}`),
   });
 }
 
 export function useAdminEvent(id: string) {
-  return useQuery({
+  return useQuery<AdminEventDetailResponse>({
     queryKey: ['admin', 'events', id],
-    queryFn: () => apiClient.get<{ id: string; title: string }>(`/v1/admin/events/${id}`),
+    queryFn: () => apiClient.get<AdminEventDetailResponse>(`/admin/events/${id}`),
     enabled: Boolean(id),
   });
 }
@@ -40,7 +41,7 @@ export function useCreateEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateEventInput) => apiClient.post('/v1/admin/events', data),
+    mutationFn: (data: CreateEventInput) => apiClient.post('/admin/events', data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'events'] });
     },
@@ -51,7 +52,7 @@ export function useUpdateEvent(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateEventInput) => apiClient.patch(`/v1/admin/events/${id}`, data),
+    mutationFn: (data: UpdateEventInput) => apiClient.patch(`/admin/events/${id}`, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'events'] });
     },
@@ -63,7 +64,7 @@ export function useUpdateEventStatus(id: string) {
 
   return useMutation({
     mutationFn: (data: UpdateEventStatusInput) =>
-      apiClient.patch(`/v1/admin/events/${id}/status`, data),
+      apiClient.patch(`/admin/events/${id}/status`, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'events'] });
     },
@@ -81,7 +82,7 @@ export function useAdminRegistrations(eventId: string, params: { page?: number; 
     queryKey: ['admin', 'events', eventId, 'registrations', params],
     queryFn: () =>
       apiClient.get<AdminRegistrationsResponse>(
-        `/v1/admin/events/${eventId}/registrations?${qs.toString()}`,
+        `/admin/events/${eventId}/registrations?${qs.toString()}`,
       ),
     enabled: Boolean(eventId),
   });
@@ -90,7 +91,7 @@ export function useAdminRegistrations(eventId: string, params: { page?: number; 
 export function useExportRegistrationsCsv(eventId: string) {
   return useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/v1/admin/events/${eventId}/registrations/export`, {
+      const res = await fetch(`${API_URL}/v1/admin/events/${eventId}/registrations/export`, {
         credentials: 'include',
       });
       if (!res.ok) throw new Error('Export failed');

@@ -38,6 +38,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 | `GET` | `/v1/public/events/:slug` | Detalhe publico de evento | Ativo |
 | `POST` | `/v1/auth/login` | Login de usuario | Ativo |
 | `POST` | `/v1/registrations` | Criacao de inscricao autenticada | Ativo |
+| `GET` | `/v1/admin/events/:id` | Detalhe de evento para edicao no painel admin | Ativo |
 
 ## Rotas Web Publicas Ativas
 
@@ -60,6 +61,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 - [x] CORS de autenticacao ajustado para suportar origins em rede local no desenvolvimento (`APP_URLS` + fallback `APP_URL`).
 - [x] Logging estruturado completo da API em desenvolvimento (nivel `debug` por padrao + logs HTTP com `request-id`).
 - [x] Fluxo de login SPA corrigido para ambiente LAN (fallback dinamico de host da API + compatibilidade de redirect + rota `/app/dashboard`).
+- [x] Correcao de roteamento admin no web (`/v1/v1/*`) e adicao do endpoint de detalhe `GET /v1/admin/events/:id`.
 
 ### Proximos passos sugeridos
 - [ ] Expandir o design system para rotas `/public/eventos` e `/public/eventos/[slug]`.

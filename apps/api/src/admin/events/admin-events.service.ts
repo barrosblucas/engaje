@@ -38,6 +38,19 @@ type EventWithDetails = Prisma.EventGetPayload<{
 export class AdminEventsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getEventById(eventId: string): Promise<EventDetail> {
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+      include: {
+        images: true,
+        _count: { select: { registrations: { where: { status: 'confirmed' } } } },
+      },
+    });
+
+    if (!event) throw new NotFoundException('Evento não encontrado');
+    return this.mapEventToDetail(event);
+  }
+
   async getEventSlug(eventId: string): Promise<string | null> {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },

@@ -18,6 +18,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/config/app-logger.ts` + `src/config/nest-logger.ts` + `src/config/http-logging.middleware.ts` — Logger estruturado com nivel dinâmico por ambiente e log HTTP com `request-id`.
 - `src/public/events/*` — Endpoints publicos `GET /v1/public/events*`.
 - `src/admin/events/*` — Fluxo autenticado de gestao de eventos e export CSV.
+  - inclui listagem, detalhe (`GET /v1/admin/events/:id`), edicao, status, imagens e inscritos.
 
 ## apps/web (Next.js 15 App Router)
 - `postcss.config.mjs` — Pipeline PostCSS com plugin `@tailwindcss/postcss` para Tailwind v4.
@@ -39,6 +40,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/lib/cn.ts` — Helper para composicao de classes CSS.
 - `src/components/public/home/home-utils.spec.ts` — Testes Vitest dos utilitarios da Home.
 - `src/shared/api-client.ts` — Cliente HTTP com `credentials: "include"` e fallback dinamico para host local atual (`window.location.hostname`) quando `NEXT_PUBLIC_API_URL` nao estiver definido.
+- `src/shared/hooks/use-admin.ts` — Hooks admin consumindo `/admin/*` via `api-client` (sem duplicar prefixo `/v1`).
 - `src/middleware.ts` — Protecao de `/app/*` redirecionando para `/login?redirect=...`.
 
 ## packages/contracts
@@ -51,6 +53,9 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 
 ## prisma
 - `schema.prisma` — Modelos do dominio de usuarios, eventos e inscricoes.
+
+## Testes de integracao relevantes
+- `apps/api/src/admin/events/admin-events.spec.ts` — Cobre `GET /v1/admin/events/:id` (sucesso, 404 e acesso negado para cidadao).
 
 ## Documentacao
 - `.context/docs/AI-GOVERNANCE.md` — Guardrails AI/contract-first.

@@ -45,6 +45,11 @@ export class AdminEventsController {
     return this.adminEventsService.listEvents(parsed);
   }
 
+  @Get(':id')
+  getEvent(@Param('id') id: string) {
+    return this.adminEventsService.getEventById(id);
+  }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('banner'))

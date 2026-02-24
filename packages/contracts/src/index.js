@@ -8,6 +8,7 @@ exports.ApiErrorSchema =
   exports.UserRegistrationSchema =
   exports.RegistrationSchema =
   exports.CreateRegistrationInputSchema =
+  exports.AdminEventDetailResponseSchema =
   exports.AdminEventListResponseSchema =
   exports.AdminEventSummarySchema =
   exports.AdminEventListRequestSchema =
@@ -187,6 +188,7 @@ exports.AdminEventListResponseSchema = zod_1.z.object({
     totalPages: zod_1.z.number().int(),
   }),
 });
+exports.AdminEventDetailResponseSchema = exports.EventDetailSchema;
 // ─── Registrations ────────────────────────────────────────────────────────────
 exports.CreateRegistrationInputSchema = zod_1.z.object({
   eventId: zod_1.z.string().min(1),

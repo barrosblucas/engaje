@@ -204,6 +204,9 @@ export const AdminEventListResponseSchema = z.object({
 });
 export type AdminEventListResponse = z.infer<typeof AdminEventListResponseSchema>;
 
+export const AdminEventDetailResponseSchema = EventDetailSchema;
+export type AdminEventDetailResponse = z.infer<typeof AdminEventDetailResponseSchema>;
+
 // ─── Registrations ────────────────────────────────────────────────────────────
 
 export const CreateRegistrationInputSchema = z.object({
