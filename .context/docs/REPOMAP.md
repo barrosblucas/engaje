@@ -1,86 +1,98 @@
 # REPOMAP — Engaje Portal
 
-
-## Visão geral do repositório
-
-Mapa vivo do repositório Engaje. Atualize sempre que estruturas, rotas ou contratos mudarem.
-
-
+## Visao geral do repositorio
+Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contratos mudarem.
 
 ---
 
 ## Raiz
-- `apps/` — Artefatos deployáveis.
+- `apps/` — Artefatos deployaveis.
 - `packages/` — Bibliotecas compartilhadas (contracts, utils).
-- `prisma/` — Schema e migrações Postgres.
-- `scripts/` — Checks de governança (file-length, prisma-migration, no-console).
+- `prisma/` — Schema e migracoes Postgres.
+- `scripts/` — Checks de governanca (file-length, prisma-migration, no-console).
 - `.context/` — Wiki viva (docs, agents, changelog).
 
 ## apps/api (NestJS, prefixo `v1`)
-- `src/main.ts` — Bootstrap com pino-http, Swagger e prefixo global `v1`.
+- `src/main.ts` — Bootstrap Nest com prefixo global `v1`, `cookie-parser`, `express-session`, `passport` e logger `pino`.
+- `src/config/app-origins.ts` — SSOT de origins do app para CORS/redirect (`APP_URLS` + fallback `APP_URL`).
+- `src/public/events/*` — Endpoints publicos `GET /v1/public/events*`.
+- `src/admin/events/*` — Fluxo autenticado de gestao de eventos e export CSV.
 
-## apps/web (Nextjs 15 App Router)
-- `src/main.tsx` — Entrada do app.
+## apps/web (Next.js 15 App Router)
+- `postcss.config.mjs` — Pipeline PostCSS com plugin `@tailwindcss/postcss` para Tailwind v4.
+- `src/app/page.tsx` — Redirect da raiz `/` para `/public`.
+- `src/app/public/page.tsx` — Nova Home institucional publica (hero, categorias, destaques, noticias e microinteracoes).
+- `src/app/public/eventos/*` — Agenda publica SEO-first + detalhe de evento com CTA de inscricao.
+- `src/app/public/programas/page.tsx` — Vitrine publica de iniciativas e programas municipais.
+- `src/app/public/contato/page.tsx` — Pagina publica de contato institucional e FAQ.
+- `src/components/public/home/*` — Secoes da Home publica (hero, categorias, eventos, banner, stats, noticias, engajamento).
+- `src/components/ui/*` — Design system base (`Button`, `Card`, `Badge`, `Input`, `Select`, `DatePicker`, `Modal`, `Toast`, `Skeleton`, `ProgressBar`, `Avatar`, `Chip`, `Accordion`, `Timeline`).
+- `src/components/public/theme-toggle.tsx` — Toggle manual de tema com fallback para `prefers-color-scheme`.
+- `src/components/public/public-header.tsx` — Header institucional com menu responsivo e bottom tab bar mobile.
+- `src/components/public/public-footer.tsx` — Rodape institucional com links e canais oficiais.
+- `src/lib/public-events.ts` — Utilitarios de categoria/data/vagas para dominio de eventos publicos.
+- `src/lib/cn.ts` — Helper para composicao de classes CSS.
+- `src/components/public/home/home-utils.spec.ts` — Testes Vitest dos utilitarios da Home.
 
 ## packages/contracts
-- `src/users/contracts.ts` — Schemas Zod: `UserSchema`, `CreateUserInputSchema`, 
+- `src/index.ts` — SSOT de schemas Zod dos dominios Auth, Public Events, Admin Events e Registrations.
+- `src/index.spec.ts` — Testes de contratos (CPF, defaults de query publica e validacao de role admin).
+
 ## packages/utils
-- `src/index.ts` — Helpers puros (placeholder no starter).
+- `src/index.ts` — Helpers puros (`formatDateBR`, `truncate`).
+- `src/index.spec.ts` — Testes unitarios dos helpers puros.
 
 ## prisma
-- `schema.prisma` — Modelos:
+- `schema.prisma` — Modelos do dominio de usuarios, eventos e inscricoes.
 
-## Documentação
+## Documentacao
 - `.context/docs/AI-GOVERNANCE.md` — Guardrails AI/contract-first.
 - `.context/docs/PROJECT_STATE.md` — Estado atual e roadmap.
-- `.context/docs/architecture.md` — Visão arquitetural.
-- `.context/docs/changelog/CHANGELOG_YYYY_MM_DD.md` — Registro diário obrigatório.
+- `.context/docs/architecture.md` — Visao arquitetural.
+- `.context/docs/changelog/CHANGELOG_YYYY_MM_DD.md` — Registro diario obrigatorio.
 
-## Stack tecnológica
+## Stack tecnologica
 
 | Camada          | Tecnologia                                          |
 | --------------- | --------------------------------------------------- |
 | Linguagem       | TypeScript 5.x strict — Node.js 24 LTS             |
 | Backend         | NestJS 10, Prisma 7+, Zod, Pino                     |
 | Frontend        | Next.js 15 App Router, TailwindCSS v4, shadcn/ui   |
-| Auth cidadão    | Better Auth (credentials CPF+senha + OAuth Google)  |
-| Auth admin      | Sessão NestJS separada — AdminUser + email allowlist |
-| Banco de dados  | PostgreSQL 17+ (Prisma), Redis (cache + BullMQ)         |
-| Fila de e-mails | BullMQ + Nodemailer (retry 3x exponencial)          |
+| Auth cidadao    | Better Auth (credentials CPF+senha + OAuth Google) |
+| Auth admin      | Sessao NestJS separada — AdminUser + email allowlist |
+| Banco de dados  | PostgreSQL 17+ (Prisma), Redis (cache + BullMQ)    |
+| Fila de e-mails | BullMQ + Nodemailer (retry 3x exponencial)         |
 | Monorepo        | pnpm workspaces + Turborepo                         |
 | Lint / Format   | Biome (substitui ESLint + Prettier)                 |
-| Testes          | Vitest (packages), Jest + Supertest (api), Playwright (web) |
+| Testes          | Vitest (packages + web), Jest + Supertest (api)    |
 
 ---
 
 ## Branches
 
-| Branch                | Status   | Descrição                             |
-| --------------------- | -------- | ------------------------------------- |
-| `main`                | estável  | Base do projeto                       |
-| `dev`                 | desenvolvimento  | Base do projeto               |
-
+| Branch | Status | Descricao |
+| :--- | :--- | :--- |
+| `main` | estavel | Base do projeto |
+| `dev` | desenvolvimento | Base de integracao |
 
 ---
 
 ## Entidades principais (resumo)
-
-- **Event** — eventos municipais com formulário dinâmico opcional
-- **Program** — programas municipais com formulário dinâmico obrigatório
-- **Citizen** — cidadão com CPF validado + autenticação Better Auth
-- **Registration** — inscrição em evento (protocolo + QR code)
-- **ProgramRegistration** — inscrição em programa (protocolo + QR code)
-- **AdminUser** — gestor municipal (único papel, email allowlist)
-- **NotificationLog** — rastreamento de e-mails enviados/falhados
+- **Event** — eventos municipais com formulario dinamico opcional.
+- **Program** — programas municipais com formulario dinamico obrigatorio.
+- **Citizen** — cidadao com CPF validado + autenticacao Better Auth.
+- **Registration** — inscricao em evento (protocolo + QR code).
+- **ProgramRegistration** — inscricao em programa (protocolo + QR code).
+- **AdminUser** — gestor municipal (unico papel, email allowlist).
+- **NotificationLog** — rastreamento de e-mails enviados/falhados.
 
 ---
 
-## Convenções de código
-
-- Cada módulo NestJS: `.module.ts`, `.controller.ts`, `.service.ts`, `.repo.ts`, `.schema.ts`
-- Controllers: finos — validam input, delegam ao service, mapeiam response
-- Services: toda lógica de negócio, validação Zod, transações Prisma
-- Repos: único ponto de acesso ao Prisma; transactions quando múltiplas entidades
-- `packages/contracts`: source of truth dos schemas Zod (importado em api e web)
-- Arquivos: máximo 400 linhas (CI bloqueia se exceder)
-- Sem `console.log` em prod (CI bloqueia)
+## Convencoes de codigo
+- Cada modulo NestJS: `.module.ts`, `.controller.ts`, `.service.ts`, `.repo.ts`, `.schema.ts`.
+- Controllers finos: validam input, delegam ao service e mapeiam response.
+- Services: regra de negocio, validacao Zod e transacoes Prisma.
+- Repos: unico ponto de acesso ao Prisma; transactions quando multiplas entidades.
+- `packages/contracts`: source of truth dos schemas Zod (importado em api e web).
+- Arquivos: maximo 400 linhas (CI bloqueia se exceder).
+- Sem `console.log` em prod (CI bloqueia).
