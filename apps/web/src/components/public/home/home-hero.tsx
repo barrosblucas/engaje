@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Search } from 'lucide-react';
+import { ArrowRight, Calendar, Search } from 'lucide-react';
 import Link from 'next/link';
 
 interface HomeHeroProps {
@@ -42,9 +42,10 @@ export function HomeHero({ eventsThisWeek }: HomeHeroProps) {
         className="relative z-10 grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end"
       >
         <div>
-          <p className="inline-flex rounded-full border border-white/30 bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.08em]">
-            Prefeitura Municipal de Bandeirantes - MS
-          </p>
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3.5 py-1.5 text-xs font-semibold text-white/90 animate-float">
+            <span className="h-2 w-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />🎉
+            Descubra os eventos da sua cidade
+          </div>
           <h1 className="mt-4 text-balance text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.1]">
             Bandeirantes Conectada. Engaje com sua cidade.
           </h1>
@@ -76,18 +77,25 @@ export function HomeHero({ eventsThisWeek }: HomeHeroProps) {
             </div>
           </form>
 
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Button asChild variant="primary" size="lg">
-              <Link href="/public/eventos">Ver eventos</Link>
-            </Button>
-            <Button
-              asChild
-              variant="ghost"
-              size="lg"
-              className="border-white/35 text-white hover:bg-white/20"
+          <div
+            className="mt-4 flex flex-col gap-3 animate-fade-up sm:flex-row"
+            style={{ animationDelay: '240ms' }}
+          >
+            <Link
+              href="/public/eventos"
+              className="btn-ripple shadow-accent inline-flex h-12 items-center justify-center gap-2 rounded-xl px-7 text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:translate-y-0"
+              style={{ background: 'linear-gradient(135deg, #F97316 0%, #EA6C0A 100%)' }}
             >
-              <Link href="/public/programas">Saiba mais</Link>
-            </Button>
+              <Calendar aria-hidden="true" className="h-4 w-4" />
+              Ver Todos os Eventos
+            </Link>
+            <Link
+              href="/public/programas"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/30 px-7 text-sm font-bold text-white/90 transition-all hover:bg-white/10"
+            >
+              Programas Municipais
+              <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
           </div>
         </div>
 

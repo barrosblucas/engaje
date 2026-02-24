@@ -204,6 +204,67 @@ Implementar a Home publica completa (`/public`) para o portal Engaje com identid
 - `pnpm test` ✅
 - `pnpm build` ✅
 
+## Tarefa 14 — Atualizacao do selo da Home publica com efeito flutuante
+
+### Objetivo
+Substituir o selo textual antigo da Home publica por um selo com indicador pulsante e animacao de flutuacao, conforme especificacao visual solicitada.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/public/home/home-hero.tsx`
+- `apps/web/src/app/globals.css`
+
+### O que mudou
+- Removido o bloco:
+  - `Prefeitura Municipal de Bandeirantes - MS`
+- Inserido novo bloco no hero com:
+  - texto `🎉 Descubra os eventos da sua cidade`,
+  - ponto indicador com `animate-pulse`,
+  - estilo translúcido com borda e tipografia compacta.
+- Criada a classe utilitaria `.animate-float` em `globals.css` com `@keyframes float` para garantir o efeito flutuante no novo selo.
+- Sem alteracoes de contratos (`packages/contracts`) e sem mudanca de rotas/estrutura.
+
+### Impacto
+- Home publica ganha destaque visual mais forte no topo do hero.
+- O novo selo animado melhora a hierarquia de informacao sem alterar fluxo de navegacao ou dados.
+- Nenhum impacto em API, autenticacao ou persistencia.
+
+### Validacao executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
+## Tarefa 15 — Atualizacao dos botoes de CTA na Home publica
+
+### Objetivo
+Trocar os botoes principais do hero da Home publica para o novo layout solicitado, com estilo destacado no CTA principal, icones e animacao de entrada.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/public/home/home-hero.tsx`
+- `apps/web/src/app/globals.css`
+
+### O que mudou
+- Substituido o bloco anterior de CTAs (`Ver eventos` / `Saiba mais`) por dois links estilizados:
+  - `Ver Todos os Eventos` com gradiente laranja, `btn-ripple` e sombra `shadow-accent`.
+  - `Programas Municipais` com borda translúcida e icone de seta.
+- Adicionados icones `Calendar` e `ArrowRight` via `lucide-react`.
+- Criadas classes globais para suportar o visual pedido:
+  - `.animate-fade-up` + `@keyframes fade-up`
+  - `.shadow-accent`
+  - `.btn-ripple` (com efeito visual via pseudo-elemento)
+- Mantidas as rotas funcionais do projeto (`/public/eventos` e `/public/programas`).
+- Sem alteracoes de contratos (`packages/contracts`) e sem mudanca estrutural.
+
+### Impacto
+- CTAs da Home ficam mais chamativos e alinhados com a referencia visual enviada.
+- Sem impacto em API, regras de negocio, autenticacao ou persistencia.
+
+### Validacao executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
 ## Tarefa 11 — Redesign da pagina de login com base no componente Travel Connect
 
 ### Objetivo
