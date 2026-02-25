@@ -1,6 +1,11 @@
 import type { EventSummary } from '@engaje/contracts';
 import { describe, expect, it } from 'vitest';
-import { countEventsThisWeek, getFeaturedEvents } from './home-utils';
+import {
+  countEventsThisWeek,
+  getFeaturedEvents,
+  resolveEventEnrollmentHref,
+  resolveProgramParticipationHref,
+} from './home-utils';
 
 const baseEvent: EventSummary = {
   id: '1',
@@ -67,5 +72,18 @@ describe('home-utils', () => {
     expect(result).toHaveLength(2);
     expect(result[0]?.id).toBe('1');
     expect(result[1]?.id).toBe('2');
+  });
+
+  it('resolveEventEnrollmentHref returns authenticated enrollment path by slug', () => {
+    expect(resolveEventEnrollmentHref('caravana-da-saude')).toBe(
+      '/app/inscricoes/nova/caravana-da-saude',
+    );
+  });
+
+  it('resolveProgramParticipationHref returns program detail path and fallback', () => {
+    expect(resolveProgramParticipationHref('juventude-digital')).toBe(
+      '/public/programas/juventude-digital',
+    );
+    expect(resolveProgramParticipationHref(null)).toBe('/public/programas');
   });
 });

@@ -1,8 +1,6 @@
 'use client';
 
-import { ToastProvider, useToast } from '@/components/ui/toast';
 import type { EventSummary, ProgramDetail } from '@engaje/contracts';
-import { useState } from 'react';
 import { HomeCategories } from './home-categories';
 import { HomeEngagement } from './home-engagement';
 import { HomeFeaturedEvents } from './home-featured-events';
@@ -19,18 +17,7 @@ interface HomePageProps {
 }
 
 function HomePageContent({ events, activeProgram, stats }: HomePageProps) {
-  const { showToast } = useToast();
-  const [modalOpen, setModalOpen] = useState(false);
-
   const eventsThisWeek = countEventsThisWeek(events);
-
-  const handleQuickApply = (eventTitle: string) => {
-    showToast({
-      tone: 'success',
-      title: 'Inscricao iniciada',
-      description: `${eventTitle}: revise os dados e confirme sua vaga.`,
-    });
-  };
 
   return (
     <div className="space-y-10 pb-8 pt-5 sm:space-y-12 sm:pt-7">
@@ -41,24 +28,20 @@ function HomePageContent({ events, activeProgram, stats }: HomePageProps) {
       <HomeCategories />
 
       {/* Cards de eventos com progresso de vagas */}
-      <HomeFeaturedEvents events={events} onQuickApply={handleQuickApply} />
+      <HomeFeaturedEvents events={events} />
 
       {/* Banner secundario de campanha */}
-      <HomeHighlightBanner activeProgram={activeProgram} onOpenModal={() => setModalOpen(true)} />
+      <HomeHighlightBanner activeProgram={activeProgram} />
 
       {/* Bloco de indicadores com contadores animados */}
       <HomeStats stats={stats} />
 
       {/* Preview do sistema de componentes e fluxos */}
-      <HomeEngagement modalOpen={modalOpen} onCloseModal={() => setModalOpen(false)} />
+      <HomeEngagement />
     </div>
   );
 }
 
 export function HomePage(props: HomePageProps) {
-  return (
-    <ToastProvider>
-      <HomePageContent {...props} />
-    </ToastProvider>
-  );
+  return <HomePageContent {...props} />;
 }

@@ -16,11 +16,11 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { CalendarClock, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { resolveEventEnrollmentHref } from './home-utils';
 import { Reveal } from './reveal';
 
 interface HomeFeaturedEventsProps {
   events: EventSummary[];
-  onQuickApply: (eventTitle: string) => void;
 }
 
 const SKELETON_KEYS = ['skeleton-a', 'skeleton-b', 'skeleton-c'] as const;
@@ -34,7 +34,7 @@ function slotsProgress(availableSlots: number | null) {
   return Math.min(100, Math.max(8, used));
 }
 
-export function HomeFeaturedEvents({ events, onQuickApply }: HomeFeaturedEventsProps) {
+export function HomeFeaturedEvents({ events }: HomeFeaturedEventsProps) {
   const reducedMotion = useReducedMotion();
 
   return (
@@ -124,12 +124,8 @@ export function HomeFeaturedEvents({ events, onQuickApply }: HomeFeaturedEventsP
                       </div>
 
                       <div className="grid gap-2 sm:grid-cols-2">
-                        <Button
-                          variant="primary"
-                          onClick={() => onQuickApply(event.title)}
-                          fullWidth
-                        >
-                          Inscrever-se
+                        <Button asChild variant="primary" fullWidth>
+                          <Link href={resolveEventEnrollmentHref(event.slug)}>Inscrever-se</Link>
                         </Button>
                         <Button asChild variant="ghost" fullWidth>
                           <Link href={`/public/eventos/${event.slug}`}>Detalhes</Link>

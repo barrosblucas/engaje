@@ -47,7 +47,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/components/dynamic-form/*` — Builder, renderizacao de campos dinamicos e preview.
 - `src/components/editor/rich-text-editor.tsx` — Editor rico baseado em Tiptap (Simple Editor) para campos de descricao publica com toolbar e upload de imagens.
 - `src/components/events/attendance-intent-button.tsx` — Botao `Vou ir com certeza` com contador persistente.
-- `src/components/public/home/*` — Secoes da Home publica (hero, categorias, eventos, banner, stats e engajamento).
+- `src/components/public/home/*` — Secoes da Home publica (hero, categorias, eventos, banner, stats e engajamento), com CTA `Inscrever-se` dos cards apontando para `/app/inscricoes/nova/[slug]` e CTA `Quero participar` do programa ativo apontando para `/public/programas/[slug]` (sem modal).
 - `src/components/ui/*` — Design system base (`Button`, `Card`, `Badge`, `Input`, `Select`, `DatePicker`, `Modal`, `Toast`, `Skeleton`, `ProgressBar`, `Avatar`, `Chip`, `Accordion`, `Timeline`).
 - `src/components/public/theme-toggle.tsx` — Toggle manual de tema com fallback para `prefers-color-scheme`.
 - `src/components/public/public-header.tsx` — Header institucional com menu responsivo e bottom tab bar mobile.

@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
 import type { ProgramDetail } from '@engaje/contracts';
 import Link from 'next/link';
+import { resolveProgramParticipationHref } from './home-utils';
 import { Reveal } from './reveal';
 
 interface HomeHighlightBannerProps {
   activeProgram: ProgramDetail | null;
-  onOpenModal: () => void;
 }
 
 function stripHtml(input: string): string {
@@ -16,14 +16,12 @@ function stripHtml(input: string): string {
     .trim();
 }
 
-export function HomeHighlightBanner({ activeProgram, onOpenModal }: HomeHighlightBannerProps) {
+export function HomeHighlightBanner({ activeProgram }: HomeHighlightBannerProps) {
   const title = activeProgram?.title ?? 'Nenhum programa ativo no momento';
   const description = activeProgram
     ? stripHtml(activeProgram.description).slice(0, 180)
     : 'Novos programas publicados aparecem aqui para destacar as ações prioritárias da prefeitura.';
-  const detailsHref = activeProgram
-    ? `/public/programas/${activeProgram.slug}`
-    : '/public/programas';
+  const detailsHref = resolveProgramParticipationHref(activeProgram?.slug);
   const bannerBackground = activeProgram?.bannerUrl
     ? `linear-gradient(120deg,rgba(26,60,110,0.88),rgba(45,125,79,0.88)),url('${activeProgram.bannerUrl}')`
     : "linear-gradient(120deg,rgba(26,60,110,0.94),rgba(45,125,79,0.92)),url('https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=1400&q=80')";
@@ -51,8 +49,8 @@ export function HomeHighlightBanner({ activeProgram, onOpenModal }: HomeHighligh
                 </a>
               </Button>
             ) : activeProgram ? (
-              <Button variant="primary" onClick={onOpenModal}>
-                Quero participar
+              <Button variant="primary" asChild>
+                <Link href={detailsHref}>Quero participar</Link>
               </Button>
             ) : (
               <Button variant="primary" asChild>

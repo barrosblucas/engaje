@@ -51,6 +51,69 @@ Não exibir o indicador de vagas ("Vagas ilimitadas"/status de vagas) nas págin
 - `pnpm test` ✅
 - `pnpm build` ✅
 
+## Tarefa 12 — Ajuste de bind do Next.js dev para acesso LAN
+
+### Objetivo
+Evitar falhas intermitentes de acesso por IP local (`192.168.x.x`) durante desenvolvimento, garantindo bind explicito em todas as interfaces.
+
+### Arquivos alterados (principais)
+- `apps/web/package.json`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- Script `dev` do web alterado de `next dev -p 3000` para `next dev -H 0.0.0.0 -p 3000`.
+
+### Impacto
+- O servidor Next.js em desenvolvimento passa a escutar explicitamente em rede local, reduzindo risco de `ERR_CONNECTION_REFUSED` ao acessar via IP da maquina.
+
+### Validação executada
+- Verificado bind ativo em `*:3000`.
+- `HEAD /public` em `http://localhost:3000/public` e `http://192.168.1.21:3000/public` retornando `200`.
+- `HEAD /app/inscricoes/nova/[slug]` retornando `307` para `/login?redirect=...` (fluxo esperado sem sessao).
+
+## Tarefa 13 — Mitigação de instabilidade por pressão de memória no ambiente dev
+
+### Objetivo
+Reduzir quedas intermitentes dos servidores de desenvolvimento (`ERR_CONNECTION_REFUSED`) causadas por pressão de memória e OOM no host durante recompilações.
+
+### Arquivos alterados (principais)
+- `apps/web/package.json`
+- `apps/api/package.json`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- `@engaje/web`:
+  - `dev` passou a executar com `NODE_OPTIONS='--max-old-space-size=1536 --dns-result-order=ipv4first'`.
+- `@engaje/api`:
+  - `dev` passou a executar com `NODE_OPTIONS='--max-old-space-size=1024 --dns-result-order=ipv4first'`.
+
+### Impacto
+- Diminui o consumo máximo de heap por processo Node no modo desenvolvimento.
+- Reduz probabilidade de o kernel encerrar processos de dev por OOM em máquinas com pouca memória/swap.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
+## Tarefa 14 — Limpeza de artefato de upload local e proteção no git
+
+### Objetivo
+Remover arquivo de upload gerado localmente do working tree e impedir que novos uploads locais do backend sejam versionados por engano.
+
+### Arquivos alterados (principais)
+- `.gitignore`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- Removido do workspace o artefato local `apps/api/uploads/content/1771990333976-ne1apc2o3c.webp`.
+- Adicionada regra `apps/api/uploads/` no `.gitignore`.
+
+### Impacto
+- Uploads gerados em desenvolvimento deixam de “sujar” o `git status`.
+- Sem impacto funcional em rotas, contratos, API ou frontend.
+
 ## Tarefa 08 — Padronização de origem da API nas rotas públicas SSR
 
 ### Objetivo
@@ -316,6 +379,43 @@ Remover o CTA `Inscrever-se` do menu quando houver sessão autenticada ativa.
 ### Impacto
 - Usuário autenticado não vê mais o botão `Inscrever-se` no menu superior.
 - Usuário não autenticado mantém o CTA normalmente.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
+## Tarefa 11 — Fluxo de inscrição da Home pública sem popup
+
+### Objetivo
+Corrigir o comportamento do CTA `Inscrever-se` da Home publica para navegar ao fluxo real de inscricao por evento, em vez de abrir feedback simulado/popup.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/public/home/home-featured-events.tsx`
+- `apps/web/src/components/public/home/home-highlight-banner.tsx`
+- `apps/web/src/components/public/home/home-page.tsx`
+- `apps/web/src/components/public/home/home-engagement.tsx`
+- `apps/web/src/components/public/home/home-utils.ts`
+- `apps/web/src/components/public/home/home-utils.spec.ts`
+- `.context/docs/PROJECT_STATE.md`
+- `.context/docs/REPOMAP.md`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- O botao `Inscrever-se` dos cards de eventos na Home passou a usar link direto para `/app/inscricoes/nova/[slug]`.
+- Mantido o fluxo de autenticacao existente:
+  - usuario logado segue direto para a pagina de inscricao;
+  - usuario sem sessao e redirecionado para `/login?redirect=/app/inscricoes/nova/[slug]`;
+  - apos login, retorna para a inscricao do evento.
+- O CTA `Quero participar` do bloco `Programa ativo` deixou de abrir modal e passou a navegar para `/public/programas/[slug]` (fallback `/public/programas`).
+- Removido o fluxo de modal de inscricao simulada da secao `HomeEngagement`.
+- Criados helpers puros de rota em `home-utils` com testes unitarios dedicados.
+
+### Impacto
+- Elimina friccao de UX na Home publica ao trocar simulacao por navegacao real de inscricao.
+- Garante consistencia entre CTA de Home e fluxo oficial autenticado de inscricoes.
+- Sem alteracoes de contrato (`packages/contracts`) e sem mudancas de endpoint backend.
 
 ### Validação executada
 - `pnpm lint` ✅

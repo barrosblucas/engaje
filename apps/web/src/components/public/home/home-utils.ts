@@ -20,3 +20,15 @@ export function getFeaturedEvents(events: EventSummary[], limit = 6): EventSumma
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
     .slice(0, limit);
 }
+
+export function resolveEventEnrollmentHref(slug: string): string {
+  return `/app/inscricoes/nova/${slug}`;
+}
+
+export function resolveProgramParticipationHref(slug: string | null | undefined): string {
+  if (!slug) {
+    return '/public/programas';
+  }
+
+  return `/public/programas/${slug}`;
+}

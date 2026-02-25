@@ -17,6 +17,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 
 ### Public Web (Next.js)
 - Home institucional em `apps/web/src/app/public/page.tsx` com design system, microinteracoes, dark mode, bloco `Programa ativo` e painel `Engajamento da cidade` alimentados pela API publica.
+- CTA `Inscrever-se` nos cards de eventos da Home direcionando para `/app/inscricoes/nova/[slug]` (com redirect para login quando sem sessao e retorno pos-login para a inscricao do evento).
 - Agenda publica em `apps/web/src/app/public/eventos/*` com filtros, cards e paginacao.
 - Detalhe de evento em `apps/web/src/app/public/eventos/[slug]/page.tsx` com:
   - renderizacao condicional por `registrationMode` (`registration` x `informative`),
@@ -81,6 +82,8 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 
 ## Pendencias e Roadmap Tecnico
 ### Concluido recentemente (2026-02-25)
+- [x] Home publica: botao `Inscrever-se` dos cards agora navega para `/app/inscricoes/nova/[slug]` (sem popup), mantendo fluxo login -> redirect -> pagina de inscricao.
+- [x] Home publica: CTA `Quero participar` do bloco `Programa ativo` deixou de abrir modal e agora navega para `/public/programas/[slug]`.
 - [x] Usuário logado não exibe mais o botão `Inscrever-se` no menu público superior.
 - [x] Header público agora reflete sessão autenticada (`Dashboard + Sair`) e logout no menu/dashboard redireciona para `/public`.
 - [x] Contract-first completo para modo de inscricao (`registration`/`informative`) e form builder dinamico em eventos/programas.
