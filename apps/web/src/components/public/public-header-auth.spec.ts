@@ -6,6 +6,7 @@ describe('public-header-auth', () => {
     expect(resolvePublicHeaderAuthState(undefined)).toEqual({
       isAuthenticated: false,
       dashboardHref: null,
+      showEnrollmentButton: true,
     });
   });
 
@@ -13,6 +14,7 @@ describe('public-header-auth', () => {
     expect(resolvePublicHeaderAuthState({ role: 'citizen' })).toEqual({
       isAuthenticated: true,
       dashboardHref: '/app/inscricoes',
+      showEnrollmentButton: false,
     });
   });
 
@@ -20,10 +22,12 @@ describe('public-header-auth', () => {
     expect(resolvePublicHeaderAuthState({ role: 'admin' })).toEqual({
       isAuthenticated: true,
       dashboardHref: '/app/admin/eventos',
+      showEnrollmentButton: false,
     });
     expect(resolvePublicHeaderAuthState({ role: 'super_admin' })).toEqual({
       isAuthenticated: true,
       dashboardHref: '/app/admin/eventos',
+      showEnrollmentButton: false,
     });
   });
 

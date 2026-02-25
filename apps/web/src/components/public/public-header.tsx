@@ -156,9 +156,11 @@ export function PublicHeader() {
                 <Link href="/login">Entrar</Link>
               </Button>
             )}
-            <Button asChild variant="primary" size="sm">
-              <Link href="/public/eventos">Inscrever-se</Link>
-            </Button>
+            {authState.showEnrollmentButton ? (
+              <Button asChild variant="primary" size="sm">
+                <Link href="/public/eventos">Inscrever-se</Link>
+              </Button>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-2 md:hidden">

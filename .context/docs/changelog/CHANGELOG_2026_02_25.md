@@ -295,3 +295,30 @@ Garantir que o menu reflita o estado autenticado após login (exibindo `Dashboar
 - `pnpm typecheck` ✅
 - `pnpm test` ✅
 - `pnpm build` ✅
+
+## Tarefa 10 — Ocultar botão `Inscrever-se` para usuário logado
+
+### Objetivo
+Remover o CTA `Inscrever-se` do menu quando houver sessão autenticada ativa.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/public/public-header.tsx`
+- `apps/web/src/components/public/public-header-auth.ts`
+- `apps/web/src/components/public/public-header-auth.spec.ts`
+
+### O que mudou
+- Incluída na regra de estado do header a flag `showEnrollmentButton`.
+- Estado anônimo mantém `showEnrollmentButton: true`.
+- Estado autenticado define `showEnrollmentButton: false`.
+- O botão `Inscrever-se` no desktop agora renderiza apenas quando `showEnrollmentButton` for `true`.
+- Testes unitários atualizados para validar a regra em usuário anônimo e logado.
+
+### Impacto
+- Usuário autenticado não vê mais o botão `Inscrever-se` no menu superior.
+- Usuário não autenticado mantém o CTA normalmente.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
