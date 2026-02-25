@@ -1,5 +1,7 @@
 import { Facebook, Instagram, MessageCircle } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
+import engajeLogo from '../../../imagens/engaje logo.png';
 
 const QUICK_LINKS = [
   { href: '/public', label: 'Home' },
@@ -15,18 +17,19 @@ export function PublicFooter() {
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-[1.35fr_1fr_1fr]">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-primary)] font-bold text-white">
-              EN
-            </span>
+            <Image
+              src={engajeLogo}
+              alt="Logo Engaje"
+              width={44}
+              height={44}
+              className="h-11 w-11 object-contain"
+            />
             <div>
               <p className="text-lg font-semibold text-[var(--color-text-primary)]">Engaje</p>
               <p className="text-xs text-[var(--color-text-secondary)]">
                 Prefeitura Municipal de Bandeirantes - MS
               </p>
             </div>
-            <span className="rounded-xl border border-[var(--color-border)] px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
-              Brasao
-            </span>
           </div>
 
           <p className="max-w-sm text-sm leading-relaxed text-[var(--color-text-secondary)]">

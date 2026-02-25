@@ -4,9 +4,11 @@ import { ThemeToggle } from '@/components/public/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { CalendarDays, FileText, Home } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import engajeLogo from '../../../imagens/engaje logo.png';
 
 const DESKTOP_NAV = [
   { href: '/public', label: 'Inicio' },
@@ -70,9 +72,14 @@ export function PublicHeader() {
       >
         <div className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <Link href="/public" className="flex items-center gap-3">
-            <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-primary)] text-sm font-bold text-white">
-              EN
-            </span>
+            <Image
+              src={engajeLogo}
+              alt="Logo Engaje"
+              width={44}
+              height={44}
+              className="h-11 w-11 object-contain"
+              priority
+            />
             <span>
               <span className="block text-lg font-semibold text-[var(--color-text-primary)]">
                 Engaje
@@ -81,9 +88,7 @@ export function PublicHeader() {
                 Prefeitura de Bandeirantes - MS
               </span>
             </span>
-            <span className="hidden rounded-xl border border-[var(--color-border)] px-2 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-secondary)] sm:inline-flex">
-              Brasao oficial
-            </span>
+            
           </Link>
 
           <nav aria-label="Navegacao principal" className="hidden items-center gap-1 md:flex">
