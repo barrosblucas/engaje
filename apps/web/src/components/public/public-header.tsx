@@ -1,12 +1,17 @@
 'use client';
 
+import {
+  LOGOUT_REDIRECT_PATH,
+  resolvePublicHeaderAuthState,
+} from '@/components/public/public-header-auth';
 import { ThemeToggle } from '@/components/public/theme-toggle';
 import { Button } from '@/components/ui/button';
+import { useLogout, useMe } from '@/shared/hooks/use-auth';
 import { motion } from 'framer-motion';
 import { CalendarDays, FileText, Home } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import engajeLogo from '../../../imagens/engaje logo.png';
 
@@ -17,10 +22,9 @@ const DESKTOP_NAV = [
   { href: '/public/contato', label: 'Contato' },
 ] as const;
 
-const MOBILE_NAV = [
+const MOBILE_NAV_BASE = [
   { href: '/public', label: 'Home', icon: Home },
   { href: '/public/eventos', label: 'Eventos', icon: CalendarDays },
-  { href: '/login', label: 'Inscricoes', icon: FileText },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -28,9 +32,28 @@ function isActive(pathname: string, href: string) {
 }
 
 export function PublicHeader() {
+  const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { data: meData } = useMe();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const authState = resolvePublicHeaderAuthState(meData?.user);
+  const mobileNav = [
+    ...MOBILE_NAV_BASE,
+    authState.isAuthenticated
+      ? { href: authState.dashboardHref, label: 'Dashboard', icon: FileText }
+      : { href: '/login', label: 'Inscricoes', icon: FileText },
+  ];
+
+  function handleLogout() {
+    logout(undefined, {
+      onSuccess: () => {
+        setMenuOpen(false);
+        router.push(LOGOUT_REDIRECT_PATH);
+      },
+    });
+  }
 
   useEffect(() => {
     const onScroll = () => {
@@ -113,9 +136,26 @@ export function PublicHeader() {
 
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/login">Entrar</Link>
-            </Button>
+            {authState.isAuthenticated ? (
+              <>
+                <Button asChild variant="ghost" size="sm">
+                  <Link href={authState.dashboardHref}>Dashboard</Link>
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleLogout}
+                  loading={isLoggingOut}
+                >
+                  Sair
+                </Button>
+              </>
+            ) : (
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/login">Entrar</Link>
+              </Button>
+            )}
             <Button asChild variant="primary" size="sm">
               <Link href="/public/eventos">Inscrever-se</Link>
             </Button>
@@ -160,6 +200,26 @@ export function PublicHeader() {
               <Button asChild variant="secondary" fullWidth>
                 <Link href="/public/eventos">Ver eventos</Link>
               </Button>
+              {authState.isAuthenticated ? (
+                <>
+                  <Button asChild variant="ghost" fullWidth>
+                    <Link href={authState.dashboardHref}>Dashboard</Link>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    fullWidth
+                    onClick={handleLogout}
+                    loading={isLoggingOut}
+                  >
+                    Sair
+                  </Button>
+                </>
+              ) : (
+                <Button asChild variant="ghost" fullWidth>
+                  <Link href="/login">Entrar</Link>
+                </Button>
+              )}
             </nav>
           </div>
         ) : null}
@@ -170,7 +230,7 @@ export function PublicHeader() {
         className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--color-border)] bg-[rgba(248,249,252,0.96)] px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] pt-2 backdrop-blur md:hidden"
       >
         <ul className="grid grid-cols-4 gap-2">
-          {MOBILE_NAV.map((item) => {
+          {mobileNav.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;
 

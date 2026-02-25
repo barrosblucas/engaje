@@ -3,6 +3,7 @@
 import { useAdminPrograms, useSetProgramHomeHighlight } from '@/shared/hooks/use-admin';
 import { useLogout, useMe } from '@/shared/hooks/use-auth';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -18,6 +19,7 @@ const MODE_LABELS: Record<string, string> = {
 };
 
 export default function AdminProgramasPage() {
+  const router = useRouter();
   const { data: meData } = useMe();
   const { mutate: logout } = useLogout();
   const { data, isLoading, isError } = useAdminPrograms({});
@@ -31,6 +33,12 @@ export default function AdminProgramasPage() {
       { id: programId, isHighlightedOnHome: true },
       { onSettled: () => setPendingProgramId(null) },
     );
+  }
+
+  function handleLogout() {
+    logout(undefined, {
+      onSuccess: () => router.push('/public'),
+    });
   }
 
   return (
@@ -49,7 +57,7 @@ export default function AdminProgramasPage() {
             <Link href="/app/admin/programas/novo" className="btn-primary">
               + Novo Programa
             </Link>
-            <button type="button" onClick={() => logout(undefined)} className="btn-ghost">
+            <button type="button" onClick={handleLogout} className="btn-ghost">
               Sair
             </button>
           </div>

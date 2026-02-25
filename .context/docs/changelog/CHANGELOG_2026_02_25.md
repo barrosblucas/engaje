@@ -258,3 +258,40 @@ Substituir os indicadores mockados do bloco `Engajamento da cidade` por dados re
 - `pnpm typecheck` ✅
 - `pnpm test` ✅
 - `pnpm build` ✅
+
+## Tarefa 09 — Menu público sensível a sessão + logout com redirecionamento
+
+### Objetivo
+Garantir que o menu reflita o estado autenticado após login (exibindo `Dashboard` e `Sair`) e que o logout no menu/dashboard redirecione para a Home pública (`/public`).
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/public/public-header.tsx`
+- `apps/web/src/components/public/public-header-auth.ts` (novo)
+- `apps/web/src/components/public/public-header-auth.spec.ts` (novo)
+- `apps/web/src/app/app/inscricoes/page.tsx`
+- `apps/web/src/app/app/admin/eventos/page.tsx`
+- `apps/web/src/app/app/admin/programas/page.tsx`
+- `.context/docs/REPOMAP.md`
+
+### O que mudou
+- Header público passou a consultar sessão (`useMe`) e alternar ações:
+  - sem sessão: mantém `Entrar`,
+  - com sessão: exibe `Dashboard` (por papel) e `Sair`.
+- Implementado logout no header público com redirect explícito para `/public` após sucesso.
+- Atualizado menu mobile (painel e bottom nav) para refletir estado logado e acesso ao dashboard.
+- Ajustados botões `Sair` nas telas autenticadas (`inscricoes`, `admin/eventos`, `admin/programas`) para redirecionar para `/public` após logout.
+- Criada camada pura de regras (`public-header-auth.ts`) com testes unitários cobrindo:
+  - estado anônimo,
+  - dashboard por papel (`citizen`, `admin`, `super_admin`),
+  - destino padrão pós-logout.
+
+### Impacto
+- Usuário autenticado passa a ver ações corretas no menu público sem ficar preso ao estado visual de visitante.
+- Logout fica consistente entre header público e menus da área autenticada, sempre retornando para a Home pública.
+- Sem alteração de contratos (`packages/contracts`) e sem mudança de endpoint backend.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅

@@ -81,6 +81,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 
 ## Pendencias e Roadmap Tecnico
 ### Concluido recentemente (2026-02-25)
+- [x] Header público agora reflete sessão autenticada (`Dashboard + Sair`) e logout no menu/dashboard redireciona para `/public`.
 - [x] Contract-first completo para modo de inscricao (`registration`/`informative`) e form builder dinamico em eventos/programas.
 - [x] Novos endpoints publicos de programas (`/v1/public/programs*`) e admin de programas (`/v1/admin/programs*`).
 - [x] Fluxo de inscricao autenticada evoluido para persistir `formData` e validar obrigatorios dinamicos.

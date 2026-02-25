@@ -3,6 +3,7 @@
 import { useAdminEvents } from '@/shared/hooks/use-admin';
 import { useLogout, useMe } from '@/shared/hooks/use-auth';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const STATUS_LABELS: Record<string, string> = {
   draft: 'Rascunho',
@@ -12,10 +13,17 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function AdminEventosPage() {
+  const router = useRouter();
   const { data: meData } = useMe();
   const me = meData?.user;
   const { data, isLoading, isError } = useAdminEvents({});
   const { mutate: logout } = useLogout();
+
+  function handleLogout() {
+    logout(undefined, {
+      onSuccess: () => router.push('/public'),
+    });
+  }
 
   return (
     <div className="app-page">
@@ -32,7 +40,7 @@ export default function AdminEventosPage() {
             <Link href="/app/admin/eventos/novo" className="btn-primary">
               + Novo Evento
             </Link>
-            <button type="button" onClick={() => logout(undefined)} className="btn-ghost">
+            <button type="button" onClick={handleLogout} className="btn-ghost">
               Sair
             </button>
           </div>

@@ -51,6 +51,8 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/components/ui/*` — Design system base (`Button`, `Card`, `Badge`, `Input`, `Select`, `DatePicker`, `Modal`, `Toast`, `Skeleton`, `ProgressBar`, `Avatar`, `Chip`, `Accordion`, `Timeline`).
 - `src/components/public/theme-toggle.tsx` — Toggle manual de tema com fallback para `prefers-color-scheme`.
 - `src/components/public/public-header.tsx` — Header institucional com menu responsivo e bottom tab bar mobile.
+- `src/components/public/public-header-auth.ts` — Regras puras do estado de autenticação no header público (anon vs logado), incluindo destino canônico pós-logout (`/public`).
+- `src/components/public/public-header-auth.spec.ts` — Testes Vitest das regras do menu logado e resolução de dashboard por papel.
 - `src/components/public/public-footer.tsx` — Rodape institucional com links e canais oficiais.
 - `src/lib/public-events.ts` — Utilitarios de categoria/data/vagas para dominio de eventos publicos, com formatacao de data/hora fixada em `America/Campo_Grande`.
 - `src/lib/public-events.spec.ts` — Testes Vitest de regras de vagas e regressao de timezone (`UTC` -> horario local de Campo Grande).

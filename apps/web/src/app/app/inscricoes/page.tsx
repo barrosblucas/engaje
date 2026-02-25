@@ -3,6 +3,7 @@
 import { useLogout, useMe } from '@/shared/hooks/use-auth';
 import { useCancelRegistration, useUserRegistrations } from '@/shared/hooks/use-events';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -20,6 +21,7 @@ const STATUS_CLASS: Record<string, string> = {
 };
 
 export default function InscricoesPage() {
+  const router = useRouter();
   const { data: meData } = useMe();
   const me = meData?.user;
   const isAdmin = me?.role === 'admin' || me?.role === 'super_admin';
@@ -33,6 +35,12 @@ export default function InscricoesPage() {
     setCancellingId(id);
     cancel(id, {
       onSettled: () => setCancellingId(null),
+    });
+  }
+
+  function handleLogout() {
+    logout(undefined, {
+      onSuccess: () => router.push('/public'),
     });
   }
 
@@ -54,7 +62,7 @@ export default function InscricoesPage() {
                 Ver eventos
               </a>
             )}
-            <button type="button" onClick={() => logout(undefined)} className="btn-ghost">
+            <button type="button" onClick={handleLogout} className="btn-ghost">
               Sair
             </button>
           </div>
