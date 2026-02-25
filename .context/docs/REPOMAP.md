@@ -51,8 +51,8 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/components/public/theme-toggle.tsx` — Toggle manual de tema com fallback para `prefers-color-scheme`.
 - `src/components/public/public-header.tsx` — Header institucional com menu responsivo e bottom tab bar mobile.
 - `src/components/public/public-footer.tsx` — Rodape institucional com links e canais oficiais.
-- `src/lib/public-events.ts` — Utilitarios de categoria/data/vagas para dominio de eventos publicos.
-- `src/lib/public-events.spec.ts` — Testes Vitest da regra de visibilidade de vagas por modo (`registration` x `informative`).
+- `src/lib/public-events.ts` — Utilitarios de categoria/data/vagas para dominio de eventos publicos, com formatacao de data/hora fixada em `America/Campo_Grande`.
+- `src/lib/public-events.spec.ts` — Testes Vitest de regras de vagas e regressao de timezone (`UTC` -> horario local de Campo Grande).
 - `src/lib/rich-text.ts` — Sanitizacao defensiva para render de HTML rico e normalizacao de URLs de upload (`/uploads/*`) quando houver origem de API configurada.
 - `src/lib/cn.ts` — Helper para composicao de classes CSS.
 - `src/components/public/home/home-utils.spec.ts` — Testes Vitest dos utilitarios da Home.

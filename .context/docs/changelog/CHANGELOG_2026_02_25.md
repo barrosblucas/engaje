@@ -130,3 +130,32 @@ Remover completamente o bloco `Ultimas noticias` da Home pública, incluindo o c
 - `pnpm typecheck` ✅
 - `pnpm test` ✅
 - `pnpm build` ✅
+
+## Tarefa 05 — Correção de fuso horário no detalhe público de eventos
+
+### Objetivo
+Corrigir a exibição de horário em páginas públicas de eventos para evitar deslocamento quando o servidor estiver em UTC, mantendo o horário municipal correto (America/Campo_Grande).
+
+### Arquivos alterados (principais)
+- `apps/web/src/lib/public-events.ts`
+- `apps/web/src/lib/public-events.spec.ts`
+- `.context/docs/REPOMAP.md`
+
+### O que mudou
+- Fixado timezone explícito `America/Campo_Grande` nos formatadores de data/hora do domínio público.
+- Ajustada a regra de mesmo dia (`sameDay`) para comparar datas no timezone municipal, sem depender do timezone do runtime.
+- Ajustado o cálculo de `Hoje`/`Amanhã` para usar o mesmo timezone municipal.
+- Adicionados testes de regressão cobrindo:
+  - evento `2026-03-08T11:00:00.000Z` exibindo `07:00` até `11:00`,
+  - label relativa correta em borda de dia para UTC-4.
+
+### Impacto
+- Eventos cadastrados em horário local deixam de aparecer com +4h na rota pública de detalhe/listagem quando o servidor roda em UTC.
+- A consistência de data/hora passa a ser estável entre SSR e client.
+
+### Validação executada
+- `pnpm --filter @engaje/web test -- src/lib/public-events.spec.ts` ✅
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
