@@ -1,6 +1,7 @@
 import { DynamicFormPreview } from '@/components/dynamic-form/dynamic-form-preview';
 import { RichTextContent } from '@/components/editor/rich-text-content';
 import { PublicBadge } from '@/components/public/public-badge';
+import { PublicShareActions } from '@/components/public/public-share-actions';
 import { resolvePublicApiBase } from '@/lib/public-api-base';
 import {
   formatEventDate,
@@ -9,6 +10,7 @@ import {
   getCategoryLabel,
   shouldShowSlotsForMode,
 } from '@/lib/public-events';
+import { buildPublicShareUrl } from '@/lib/public-share';
 import { stripHtmlForTextPreview } from '@/lib/rich-text';
 import type { PublicProgramDetailResponse } from '@engaje/contracts';
 import type { Metadata } from 'next';
@@ -67,6 +69,7 @@ export default async function ProgramDetailPage({ params }: PageProps) {
   const isInformativeMode = item.registrationMode === 'informative';
   const shouldShowSlots = shouldShowSlotsForMode(item.registrationMode);
   const isFull = item.availableSlots !== null && item.availableSlots <= 0;
+  const shareUrl = buildPublicShareUrl(`/public/programas/${slug}`);
 
   return (
     <div className="page-transition pb-24 md:pb-10">
@@ -173,7 +176,7 @@ export default async function ProgramDetailPage({ params }: PageProps) {
           ) : null}
         </article>
 
-        <aside className="lg:sticky lg:top-24 lg:h-fit">
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:h-fit">
           <div className="rounded-3xl border border-brand-200/70 bg-white p-5 shadow-soft sm:p-6">
             <h2 className="font-display text-2xl font-semibold text-slate-900">Participação</h2>
             <p className="mt-2 text-sm text-slate-600">
@@ -216,6 +219,12 @@ export default async function ProgramDetailPage({ params }: PageProps) {
                   Ver eventos para inscrição
                 </Link>
               ) : null}
+
+              <PublicShareActions
+                title={item.title}
+                shareUrl={shareUrl}
+                ctaText="Compartilhe este programa com a sua rede"
+              />
             </div>
           </div>
         </aside>

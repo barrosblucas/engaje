@@ -1,6 +1,7 @@
 import { RichTextContent } from '@/components/editor/rich-text-content';
 import { AttendanceIntentButton } from '@/components/events/attendance-intent-button';
 import { PublicBadge } from '@/components/public/public-badge';
+import { PublicShareActions } from '@/components/public/public-share-actions';
 import { resolvePublicApiBase } from '@/lib/public-api-base';
 import {
   formatEventDate,
@@ -8,6 +9,7 @@ import {
   getCategoryColor,
   getCategoryLabel,
 } from '@/lib/public-events';
+import { buildPublicShareUrl } from '@/lib/public-share';
 import { stripHtmlForTextPreview } from '@/lib/rich-text';
 import type { PublicEventDetailResponse } from '@engaje/contracts';
 import type { Metadata } from 'next';
@@ -67,6 +69,7 @@ export default async function EventDetailPage({ params }: PageProps) {
   const isInformativeMode = ev.registrationMode === 'informative';
   const categoryTone = getCategoryColor(ev.category);
   const registrationPath = `/app/inscricoes/nova/${slug}`;
+  const shareUrl = buildPublicShareUrl(`/public/eventos/${slug}`);
 
   return (
     <div className="page-transition pb-24 md:pb-10">
@@ -213,7 +216,7 @@ export default async function EventDetailPage({ params }: PageProps) {
                   </p>
                   <Link
                     href={registrationPath}
-                    className="action-primary cta-pulse w-full justify-center"
+                    className="action-primary cta-pulse hidden w-full justify-center md:inline-flex"
                   >
                     Fazer inscrição
                   </Link>
@@ -236,19 +239,16 @@ export default async function EventDetailPage({ params }: PageProps) {
                   </div>
                 )
               ) : null}
+
+              <PublicShareActions
+                title={ev.title}
+                shareUrl={shareUrl}
+                ctaText="Convide amigos para este evento"
+              />
             </div>
           </div>
         </aside>
       </section>
-
-      {isOpen && !isInformativeMode && !isFull ? (
-        <div className="fixed inset-x-0 bottom-[4.6rem] z-40 px-4 md:hidden">
-          <Link href={registrationPath} className="action-primary cta-pulse w-full justify-center">
-            Fazer inscrição
-          </Link>
-        </div>
-      ) : null}
-
       {isOpen && isInformativeMode && ev.externalCtaLabel && ev.externalCtaUrl ? (
         <div className="fixed inset-x-0 bottom-[4.6rem] z-40 px-4 md:hidden">
           <a

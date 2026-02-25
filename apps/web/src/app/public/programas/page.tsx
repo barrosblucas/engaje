@@ -219,11 +219,11 @@ export default async function ProgramasPage({ searchParams }: PageProps) {
         </section>
       ) : null}
 
-      <section className="rounded-3xl border border-brand-200 bg-brand-50/60 p-5 sm:p-6">
-        <h2 className="font-display text-2xl font-semibold text-brand-900">
+      <section className="rounded-3xl border border-brand-200 bg-brand-50/60 p-5 dark:border-brand-800 dark:bg-brand-950/40 sm:p-6">
+        <h2 className="font-display text-2xl font-semibold text-brand-900 dark:text-brand-100">
           Quer participar de um evento?
         </h2>
-        <p className="mt-2 text-sm text-brand-800">
+        <p className="mt-2 text-sm text-brand-800 dark:text-brand-300">
           A agenda pública é atualizada em tempo real com vagas, datas e locais oficiais.
         </p>
         <Link href="/public/eventos" className="action-primary mt-4 text-sm">

@@ -46,8 +46,8 @@ export function AttendanceIntentButton({
   }
 
   return (
-    <div className="rounded-2xl border border-brand-200/70 bg-brand-50/70 p-4">
-      <p className="text-xs font-bold uppercase tracking-[0.08em] text-brand-700">Presença</p>
+    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-500">Presença</p>
       <p className="mt-1 text-sm text-slate-700">
         {attendeeCount}{' '}
         {attendeeCount === 1 ? 'pessoa confirmou presença' : 'pessoas confirmaram presença'}

@@ -56,10 +56,13 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/components/public/public-footer.tsx` — Rodape institucional com links/canais oficiais e icones sociais para Facebook, Instagram e site institucional.
 - `src/components/public/public-footer-links.ts` — Constantes dos links oficiais de redes sociais e portal institucional usados no rodape.
 - `src/components/public/public-footer-links.spec.ts` — Testes Vitest garantindo URLs oficiais do rodape e ausencia do atalho legado de WhatsApp.
+- `src/components/public/public-share-actions.tsx` — Bloco client-side reutilizavel de compartilhamento (WhatsApp, Instagram, Facebook e copiar link) para detalhes publicos.
 - `src/lib/public-events.ts` — Utilitarios de categoria/data/vagas para dominio de eventos publicos, com formatacao de data/hora fixada em `America/Campo_Grande`.
 - `src/lib/public-events.spec.ts` — Testes Vitest de regras de vagas e regressao de timezone (`UTC` -> horario local de Campo Grande).
 - `src/lib/public-api-base.ts` — Resolver de origem da API para rotas publicas SSR/ISR (prioriza `INTERNAL_API_URL`, depois `NEXT_PUBLIC_API_URL` e fallback localhost).
 - `src/lib/public-api-base.spec.ts` — Testes Vitest cobrindo prioridades e fallback do resolver de origem da API publica.
+- `src/lib/public-share.ts` — Helpers de URL absoluta publica e links de compartilhamento social.
+- `src/lib/public-share.spec.ts` — Testes Vitest para resolver de URL publica e geracao de links de compartilhamento.
 - `src/lib/rich-text.ts` — Sanitizacao defensiva para render de HTML rico e normalizacao de URLs de upload (`/uploads/*`) quando houver origem de API configurada.
 - `src/lib/cn.ts` — Helper para composicao de classes CSS.
 - `src/components/public/home/home-utils.spec.ts` — Testes Vitest dos utilitarios da Home.

@@ -51,6 +51,128 @@ Não exibir o indicador de vagas ("Vagas ilimitadas"/status de vagas) nas págin
 - `pnpm test` ✅
 - `pnpm build` ✅
 
+## Tarefa 19 — Botões de compartilhamento no detalhe público de eventos e programas
+
+### Objetivo
+Adicionar ações de compartilhamento no sidebar das páginas públicas de detalhe para facilitar divulgação em WhatsApp, Instagram, Facebook e por cópia de link.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/public/public-share-actions.tsx`
+- `apps/web/src/lib/public-share.ts`
+- `apps/web/src/lib/public-share.spec.ts`
+- `apps/web/src/app/public/eventos/[slug]/page.tsx`
+- `apps/web/src/app/public/programas/[slug]/page.tsx`
+- `.context/docs/REPOMAP.md`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- Criado componente client reutilizável `PublicShareActions` com quatro ações:
+  - Compartilhar no WhatsApp,
+  - Compartilhar no Facebook,
+  - Abrir Instagram com cópia prévia do link,
+  - Copiar link diretamente.
+- Criado helper `public-share.ts` para:
+  - resolver URL base pública via `NEXT_PUBLIC_APP_URL` com fallback para `http://localhost:3000`,
+  - montar URL absoluta de compartilhamento por path,
+  - gerar links de share para WhatsApp e Facebook.
+- Integrado o bloco de compartilhamento no detalhe de evento (`/public/eventos/[slug]`) e no detalhe de programa (`/public/programas/[slug]`).
+- Adicionados testes unitários de URL/base/share em `public-share.spec.ts`.
+
+### Impacto
+- Usuários conseguem compartilhar conteúdos públicos diretamente do detalhe sem depender de copiar URL manualmente.
+- Mantém arquitetura atual: SSR para conteúdo público + interação client-only no componente de share, sem alterar contratos/API.
+
+### Validação executada
+- `pnpm lint` ⚠️ (falhou por erros preexistentes de formatação/a11y em arquivos fora do escopo da tarefa)
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
+## Tarefa 20 — Compartilhamento discreto por ícones no ponto de CTA
+
+### Objetivo
+Deixar o compartilhamento menos chamativo visualmente e mais estratégico para engajamento, posicionando-o no card de conversão de inscrição/participação.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/public/public-share-actions.tsx`
+- `apps/web/src/app/public/eventos/[slug]/page.tsx`
+- `apps/web/src/app/public/programas/[slug]/page.tsx`
+- `.context/docs/PROJECT_STATE.md`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- `PublicShareActions` passou de card dedicado para bloco compacto com:
+  - ícones circulares discretos (sem labels visíveis),
+  - rótulos acessíveis via `aria-label`/`sr-only`,
+  - microcopy de CTA para convite.
+- Reposicionado o compartilhamento para dentro do card principal:
+  - detalhe de evento: card de `Inscrição`/`Informações oficiais`,
+  - detalhe de programa: card de `Participação`.
+- Mantido comportamento dos canais:
+  - WhatsApp/Facebook por links de share,
+  - Instagram com `copiar + abrir`,
+  - Link com cópia direta e feedback curto.
+
+### Impacto
+- Visual mais limpo e discreto.
+- Share aparece exatamente no ponto de maior intenção de ação do usuário, aumentando potencial de engajamento por convite.
+
+### Validação executada
+- `pnpm lint` ⚠️ (falhou por erros preexistentes de formatação/a11y em arquivos fora do escopo da tarefa)
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
+## Tarefa 21 — Padronização visual dos ícones de compartilhamento
+
+### Objetivo
+Aplicar um visual único para todos os ícones de compartilhamento, com fundo cinza e ícone preto, deixando o conjunto mais consistente.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/public/public-share-actions.tsx`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- Extraída classe única `SHARE_ICON_BUTTON_CLASSNAME` para os quatro botões.
+- Aplicado o mesmo estilo para WhatsApp, Instagram, Facebook e Link:
+  - fundo cinza (`bg-slate-200`),
+  - borda cinza (`border-slate-300`),
+  - ícone preto (`text-slate-900`),
+  - hover em variação de cinza (`hover:bg-slate-300`).
+
+### Impacto
+- Os ícones ficaram visualmente uniformes e mais discretos, conforme solicitado.
+
+### Validação executada
+- `pnpm --filter @engaje/web exec biome check src/components/public/public-share-actions.tsx` ✅
+
+## Tarefa 22 — Contraste dos ícones de compartilhamento no tema escuro
+
+### Objetivo
+Melhorar a visibilidade dos ícones de compartilhamento no dark mode, mantendo o padrão de fundo cinza e ícone preto.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/public/public-share-actions.tsx`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- Ajustada a classe compartilhada dos botões para reforçar contraste em dark:
+  - `dark:bg-slate-100`,
+  - `dark:border-slate-200`,
+  - `dark:text-slate-950`,
+  - `dark:hover:bg-white`.
+- Mantida consistência visual entre WhatsApp, Instagram, Facebook e Link.
+
+### Impacto
+- Ícones continuam discretos, porém com leitura clara no tema escuro.
+
+### Validação executada
+- `pnpm --filter @engaje/web exec biome check src/components/public/public-share-actions.tsx` ✅
+- `pnpm lint` ⚠️ (falhou por erros preexistentes de formatação/a11y em arquivos fora do escopo da tarefa)
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
 ## Tarefa 12 — Ajuste de bind do Next.js dev para acesso LAN
 
 ### Objetivo
