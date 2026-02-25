@@ -51,6 +51,36 @@ Não exibir o indicador de vagas ("Vagas ilimitadas"/status de vagas) nas págin
 - `pnpm test` ✅
 - `pnpm build` ✅
 
+## Tarefa 07 — Correção de `Inscricoes confirmadas` zerado na Home
+
+### Objetivo
+Garantir que o card `Inscricoes confirmadas` da Home pública reflita o valor real do banco mesmo em cenários de cache e/ou ambiente LAN/container.
+
+### Arquivos alterados (principais)
+- `apps/web/src/app/public/page.tsx`
+- `apps/web/src/lib/public-api-base.ts`
+- `apps/web/src/lib/public-api-base.spec.ts`
+- `.context/docs/PROJECT_STATE.md`
+- `.context/docs/REPOMAP.md`
+
+### O que mudou
+- Home pública passou a resolver origem da API com prioridade:
+  - `INTERNAL_API_URL`
+  - `NEXT_PUBLIC_API_URL`
+  - fallback `http://localhost:3001`
+- Fetch de `GET /v1/public/platform-stats` foi alterado para `cache: 'no-store'`, evitando valor antigo de inscrições em cache.
+- Adicionado teste unitário para o resolver de origem da API pública, cobrindo prioridade e fallbacks.
+
+### Impacto
+- Reduz risco de `Inscricoes confirmadas: 0` quando há inscrições no banco, especialmente em ambientes onde `localhost` não é a origem correta da API para SSR.
+- Painel de engajamento passa a refletir o dado atual de forma mais confiável.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
 ## Tarefa 03 — Seleção de “Programa ativo” na Home com trava de status
 
 ### Objetivo
@@ -155,6 +185,49 @@ Corrigir a exibição de horário em páginas públicas de eventos para evitar d
 
 ### Validação executada
 - `pnpm --filter @engaje/web test -- src/lib/public-events.spec.ts` ✅
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
+## Tarefa 06 — Painel de engajamento da Home com dados reais
+
+### Objetivo
+Substituir os indicadores mockados do bloco `Engajamento da cidade` por dados reais da plataforma e remover o indicador `Municipios parceiros`.
+
+### Arquivos alterados (principais)
+- `packages/contracts/src/index.ts`
+- `packages/contracts/src/index.spec.ts`
+- `apps/api/src/public/public.module.ts`
+- `apps/api/src/public/platform-stats/public-platform-stats.controller.ts`
+- `apps/api/src/public/platform-stats/public-platform-stats.service.ts`
+- `apps/api/src/public/platform-stats/public-platform-stats.spec.ts`
+- `apps/web/src/app/public/page.tsx`
+- `apps/web/src/components/public/home/home-types.ts`
+- `apps/web/src/components/public/home/home-stats.tsx`
+- `apps/web/src/components/public/home/home-utils.ts`
+- `apps/web/src/components/public/home/home-utils.spec.ts`
+- `apps/web/src/components/public/public-header.tsx`
+- `.context/docs/PROJECT_STATE.md`
+- `.context/docs/REPOMAP.md`
+
+### O que mudou
+- Contrato novo `PublicPlatformStatsResponseSchema` em `@engaje/contracts` para padronizar as metricas publicas da Home.
+- Novo endpoint publico `GET /v1/public/platform-stats` no backend com agregacao real de:
+  - eventos publicados,
+  - inscricoes confirmadas (eventos + programas),
+  - programas publicados (exibidos como `Programas ativos`).
+- Teste de integracao adicionado para garantir que o endpoint reflete incrementos reais no banco.
+- Home publica passou a consumir `GET /v1/public/platform-stats` com `revalidate` e fallback seguro.
+- Card `Municipios parceiros` removido do painel `Engajamento da cidade` (mantendo 3 indicadores reais).
+- Remocao da funcao de mock `buildHomeStats` e ajuste dos testes de utilitarios da Home.
+- Ajuste de formatacao em `public-header.tsx` para manter `pnpm lint` verde (sem impacto funcional).
+
+### Impacto
+- O painel de engajamento deixa de exibir valores simulados e passa a refletir dados reais da plataforma.
+- Reducao de ruído no bloco de indicadores ao remover a metrica sem fonte oficial (`Municipios parceiros`).
+
+### Validação executada
 - `pnpm lint` ✅
 - `pnpm typecheck` ✅
 - `pnpm test` ✅

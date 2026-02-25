@@ -10,6 +10,7 @@ import {
   DynamicFormSchema,
   PublicActiveProgramResponseSchema,
   PublicEventsRequestSchema,
+  PublicPlatformStatsResponseSchema,
   RegistrationModeSchema,
   UpdateProgramInputSchema,
   UserRegistrationDetailResponseSchema,
@@ -33,6 +34,20 @@ describe('contracts', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(12);
       expect(result.sort).toBe('date_asc');
+    });
+  });
+
+  describe('PublicPlatformStatsResponseSchema', () => {
+    it('accepts platform metrics payload', () => {
+      const result = PublicPlatformStatsResponseSchema.safeParse({
+        data: {
+          eventsCount: 12,
+          registrationsCount: 34,
+          activeProgramsCount: 5,
+        },
+      });
+
+      expect(result.success).toBe(true);
     });
   });
 

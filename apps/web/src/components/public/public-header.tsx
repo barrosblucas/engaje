@@ -88,7 +88,6 @@ export function PublicHeader() {
                 Prefeitura de Bandeirantes - MS
               </span>
             </span>
-            
           </Link>
 
           <nav aria-label="Navegacao principal" className="hidden items-center gap-1 md:flex">

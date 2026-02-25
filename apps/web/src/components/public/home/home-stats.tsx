@@ -52,7 +52,6 @@ export function HomeStats({ stats }: HomeStatsProps) {
       { label: 'Eventos realizados', value: stats.eventsCount },
       { label: 'Inscricoes confirmadas', value: stats.registrationsCount },
       { label: 'Programas ativos', value: stats.activeProgramsCount },
-      { label: 'Municipios parceiros', value: stats.partnerCitiesCount },
     ],
     [stats],
   );
@@ -65,7 +64,7 @@ export function HomeStats({ stats }: HomeStatsProps) {
           <p className="text-xs uppercase tracking-[0.08em] text-blue-100">Dados institucionais</p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {items.map((item) => (
             <Card key={item.label} variant="stat" className="p-4">
               <p className="text-xs uppercase tracking-[0.08em] text-blue-100">{item.label}</p>

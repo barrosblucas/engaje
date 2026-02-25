@@ -1,6 +1,12 @@
 import { HomePage } from '@/components/public/home/home-page';
-import { buildHomeStats, getFeaturedEvents } from '@/components/public/home/home-utils';
-import type { PublicActiveProgramResponse, PublicEventsResponse } from '@engaje/contracts';
+import type { HomePageStats } from '@/components/public/home/home-types';
+import { getFeaturedEvents } from '@/components/public/home/home-utils';
+import { resolvePublicApiBase } from '@/lib/public-api-base';
+import type {
+  PublicActiveProgramResponse,
+  PublicEventsResponse,
+  PublicPlatformStatsResponse,
+} from '@engaje/contracts';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -14,7 +20,12 @@ export const metadata: Metadata = {
   },
 };
 
-const API_BASE = process.env.INTERNAL_API_URL ?? 'http://localhost:3001';
+const API_BASE = resolvePublicApiBase();
+const FALLBACK_PLATFORM_STATS: HomePageStats = {
+  eventsCount: 0,
+  registrationsCount: 0,
+  activeProgramsCount: 0,
+};
 
 async function fetchHomeEvents() {
   try {
@@ -27,16 +38,9 @@ async function fetchHomeEvents() {
     }
 
     const payload = (await response.json()) as PublicEventsResponse;
-
-    return {
-      events: getFeaturedEvents(payload.data, 6),
-      total: payload.meta.total,
-    };
+    return getFeaturedEvents(payload.data, 6);
   } catch {
-    return {
-      events: [],
-      total: 0,
-    };
+    return [];
   }
 }
 
@@ -57,12 +61,27 @@ async function fetchActiveProgram() {
   }
 }
 
+async function fetchPlatformStats(): Promise<HomePageStats> {
+  try {
+    const response = await fetch(`${API_BASE}/v1/public/platform-stats`, { cache: 'no-store' });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch public platform stats: ${response.status}`);
+    }
+
+    const payload = (await response.json()) as PublicPlatformStatsResponse;
+    return payload.data;
+  } catch {
+    return FALLBACK_PLATFORM_STATS;
+  }
+}
+
 export default async function PublicHomePage() {
-  const [{ events, total }, activeProgram] = await Promise.all([
+  const [events, activeProgram, stats] = await Promise.all([
     fetchHomeEvents(),
     fetchActiveProgram(),
+    fetchPlatformStats(),
   ]);
-  const stats = buildHomeStats(total);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">

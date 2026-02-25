@@ -1,6 +1,6 @@
 import type { EventSummary } from '@engaje/contracts';
 import { describe, expect, it } from 'vitest';
-import { buildHomeStats, countEventsThisWeek, getFeaturedEvents } from './home-utils';
+import { countEventsThisWeek, getFeaturedEvents } from './home-utils';
 
 const baseEvent: EventSummary = {
   id: '1',
@@ -67,14 +67,5 @@ describe('home-utils', () => {
     expect(result).toHaveLength(2);
     expect(result[0]?.id).toBe('1');
     expect(result[1]?.id).toBe('2');
-  });
-
-  it('buildHomeStats keeps minimum registrations baseline', () => {
-    const stats = buildHomeStats(4);
-
-    expect(stats.eventsCount).toBe(4);
-    expect(stats.registrationsCount).toBe(120);
-    expect(stats.activeProgramsCount).toBe(18);
-    expect(stats.partnerCitiesCount).toBe(9);
   });
 });

@@ -1,5 +1,4 @@
 import type { EventSummary } from '@engaje/contracts';
-import type { HomePageStats } from './home-types';
 
 function toDateOnly(input: Date) {
   return new Date(input.getFullYear(), input.getMonth(), input.getDate());
@@ -20,13 +19,4 @@ export function getFeaturedEvents(events: EventSummary[], limit = 6): EventSumma
   return [...events]
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
     .slice(0, limit);
-}
-
-export function buildHomeStats(totalEvents: number): HomePageStats {
-  return {
-    eventsCount: totalEvents,
-    registrationsCount: Math.max(totalEvents * 14, 120),
-    activeProgramsCount: 18,
-    partnerCitiesCount: 9,
-  };
 }

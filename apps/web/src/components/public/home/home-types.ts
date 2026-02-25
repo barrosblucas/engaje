@@ -4,7 +4,6 @@ export interface HomePageStats {
   eventsCount: number;
   registrationsCount: number;
   activeProgramsCount: number;
-  partnerCitiesCount: number;
 }
 
 export interface HomePageData {

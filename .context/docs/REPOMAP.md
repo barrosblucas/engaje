@@ -18,6 +18,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/config/app-logger.ts` + `src/config/nest-logger.ts` + `src/config/http-logging.middleware.ts` — Logger estruturado com nivel dinâmico por ambiente e log HTTP com `request-id`.
 - `src/public/events/*` — Endpoints publicos `GET /v1/public/events*`.
 - `src/public/programs/*` — Endpoints publicos `GET /v1/public/programs*` + `GET /v1/public/programs/active`.
+- `src/public/platform-stats/*` — Endpoint publico `GET /v1/public/platform-stats` com contadores agregados reais da plataforma (eventos publicados, inscricoes confirmadas e programas ativos).
 - `src/admin/events/*` — Fluxo autenticado de gestao de eventos e export CSV.
   - inclui listagem, detalhe (`GET /v1/admin/events/:id`), edicao, status, imagens e inscritos.
 - `src/admin/programs/*` — Fluxo autenticado de gestao de programas (listagem, detalhe, criacao e edicao), incluindo controle de programa ativo da Home.
@@ -34,7 +35,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/app/login/page.tsx` — Login publico com layout visual em duas colunas (mapa animado + formulario) mantendo auth SPA client-side.
 - `src/app/login/dot-map-canvas.tsx` + `src/app/login/login-redirect.ts` — Componente visual do mapa e helper de redirect seguro (anti open-redirect).
 - `src/app/app/dashboard/page.tsx` — Rota de dashboard (ponte) com redirect por perfil (`admin/super_admin` -> `/app/admin/eventos`, `citizen` -> `/app/inscricoes`).
-- `src/app/public/page.tsx` — Home institucional publica (hero, categorias, destaques e microinteracoes), com fetch de `GET /v1/public/programs/active` para o bloco `Programa ativo`.
+- `src/app/public/page.tsx` — Home institucional publica (hero, categorias, destaques e microinteracoes), com fetch de `GET /v1/public/programs/active` para o bloco `Programa ativo` e `GET /v1/public/platform-stats` para o painel `Engajamento da cidade`.
 - `src/app/public/eventos/*` — Agenda publica SEO-first + detalhe de evento com CTA para fluxo autenticado de inscricao.
 - `src/app/app/inscricoes/nova/[slug]/page.tsx` — Tela autenticada (SPA) para inscricao dinamica por evento (slug).
 - `src/app/app/inscricoes/[id]/page.tsx` — Tela autenticada (SPA) de comprovante da inscricao com respostas preenchidas.
@@ -53,6 +54,8 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/components/public/public-footer.tsx` — Rodape institucional com links e canais oficiais.
 - `src/lib/public-events.ts` — Utilitarios de categoria/data/vagas para dominio de eventos publicos, com formatacao de data/hora fixada em `America/Campo_Grande`.
 - `src/lib/public-events.spec.ts` — Testes Vitest de regras de vagas e regressao de timezone (`UTC` -> horario local de Campo Grande).
+- `src/lib/public-api-base.ts` — Resolver de origem da API para rotas publicas SSR/ISR (prioriza `INTERNAL_API_URL`, depois `NEXT_PUBLIC_API_URL` e fallback localhost).
+- `src/lib/public-api-base.spec.ts` — Testes Vitest cobrindo prioridades e fallback do resolver de origem da API publica.
 - `src/lib/rich-text.ts` — Sanitizacao defensiva para render de HTML rico e normalizacao de URLs de upload (`/uploads/*`) quando houver origem de API configurada.
 - `src/lib/cn.ts` — Helper para composicao de classes CSS.
 - `src/components/public/home/home-utils.spec.ts` — Testes Vitest dos utilitarios da Home.
@@ -64,7 +67,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/middleware.ts` — Protecao de `/app/*` redirecionando para `/login?redirect=...`.
 
 ## packages/contracts
-- `src/index.ts` — SSOT de schemas Zod dos dominios Auth, Events, Programs, Dynamic Form, Registrations e Attendance Intents (inclui `isHighlightedOnHome` e `PublicActiveProgramResponseSchema`).
+- `src/index.ts` — SSOT de schemas Zod dos dominios Auth, Events, Programs, Dynamic Form, Registrations e Attendance Intents (inclui `isHighlightedOnHome`, `PublicActiveProgramResponseSchema` e `PublicPlatformStatsResponseSchema`).
 - `src/index.spec.ts` — Testes de contratos (CPF, defaults, registration mode, dynamic form, validacoes de CTA/schema e destaque de programa na Home).
 - `vitest.config.ts` — Config do Vitest priorizando fontes `.ts` em `src/`.
 
@@ -80,6 +83,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 ## Testes de integracao relevantes
 - `apps/api/src/admin/events/admin-events.spec.ts` — Cobre `GET /v1/admin/events/:id` (sucesso, 404 e acesso negado para cidadao).
 - `apps/api/src/super-admin-plan.spec.ts` — Cobre fluxo integrado de eventos/programas, inscricao com `formData` e attendance intents.
+- `apps/api/src/public/platform-stats/public-platform-stats.spec.ts` — Cobre agregacao real do endpoint `GET /v1/public/platform-stats`.
 
 ## Documentacao
 - `.context/docs/AI-GOVERNANCE.md` — Guardrails AI/contract-first.

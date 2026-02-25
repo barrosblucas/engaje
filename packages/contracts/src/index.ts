@@ -355,6 +355,18 @@ export const PublicEventDetailResponseSchema = z.object({
 });
 export type PublicEventDetailResponse = z.infer<typeof PublicEventDetailResponseSchema>;
 
+export const PublicPlatformStatsSchema = z.object({
+  eventsCount: z.number().int().nonnegative(),
+  registrationsCount: z.number().int().nonnegative(),
+  activeProgramsCount: z.number().int().nonnegative(),
+});
+export type PublicPlatformStats = z.infer<typeof PublicPlatformStatsSchema>;
+
+export const PublicPlatformStatsResponseSchema = z.object({
+  data: PublicPlatformStatsSchema,
+});
+export type PublicPlatformStatsResponse = z.infer<typeof PublicPlatformStatsResponseSchema>;
+
 // ─── Admin Events API ─────────────────────────────────────────────────────────
 
 export const CreateEventInputSchema = z
