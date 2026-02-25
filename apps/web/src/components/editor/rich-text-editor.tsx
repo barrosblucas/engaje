@@ -72,6 +72,32 @@ function resolveDropdownTriggerClass(isActive: boolean): string {
   )}`;
 }
 
+function parseImageDimension(value: string | null): number | null {
+  if (!value) return null;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return parsed;
+}
+
+const ResizableImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      width: {
+        default: null,
+        parseHTML: (element) => parseImageDimension(element.getAttribute('width')),
+        renderHTML: (attributes) => (attributes.width ? { width: String(attributes.width) } : {}),
+      },
+      height: {
+        default: null,
+        parseHTML: (element) => parseImageDimension(element.getAttribute('height')),
+        renderHTML: (attributes) =>
+          attributes.height ? { height: String(attributes.height) } : {},
+      },
+    };
+  },
+});
+
 export function RichTextEditor({ value, onChange, onUploadImage }: RichTextEditorProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const linkInputRef = useRef<HTMLInputElement>(null);
@@ -99,14 +125,14 @@ export function RichTextEditor({ value, onChange, onUploadImage }: RichTextEdito
         alignments: ['left', 'center', 'right', 'justify'],
       }),
       Link.configure({ openOnClick: false, autolink: true }),
-      Image,
+      ResizableImage,
     ],
     content: value || '<p></p>',
     immediatelyRender: false,
     editorProps: {
       attributes: {
         class:
-          'min-h-44 rounded-b-xl border border-t-0 border-slate-200 bg-white px-3 py-3 text-sm text-slate-800 focus:outline-none [&_p]:my-2 [&_h2]:my-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:my-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h4]:my-2 [&_h4]:font-semibold [&_ul]:my-2 [&_ul]:ml-5 [&_ul]:list-disc [&_ol]:my-2 [&_ol]:ml-5 [&_ol]:list-decimal [&_li]:my-1 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:pl-3 [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-slate-900 [&_pre]:p-3 [&_pre]:text-slate-100 [&_a]:text-brand-700 [&_a]:underline [&_.task-list]:ml-0 [&_.task-list]:list-none [&_.task-list-item]:flex [&_.task-list-item]:items-start [&_.task-list-item]:gap-2 [&_.task-list-item_input]:mt-1',
+          'min-h-44 rounded-b-xl border border-t-0 border-slate-200 bg-white px-3 py-3 text-sm text-slate-800 focus:outline-none [&_p]:my-2 [&_h2]:my-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:my-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h4]:my-2 [&_h4]:font-semibold [&_ul]:my-2 [&_ul]:ml-5 [&_ul]:list-disc [&_ol]:my-2 [&_ol]:ml-5 [&_ol]:list-decimal [&_li]:my-1 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:pl-3 [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-slate-900 [&_pre]:p-3 [&_pre]:text-slate-100 [&_a]:text-brand-700 [&_a]:underline [&_img]:max-w-full [&_img]:cursor-se-resize [&_.task-list]:ml-0 [&_.task-list]:list-none [&_.task-list-item]:flex [&_.task-list-item]:items-start [&_.task-list-item]:gap-2 [&_.task-list-item_input]:mt-1',
       },
     },
     onUpdate: ({ editor }) => {
@@ -137,6 +163,73 @@ export function RichTextEditor({ value, onChange, onUploadImage }: RichTextEdito
 
     return () => {
       document.removeEventListener('mousedown', closeMenuOnClickOutside);
+    };
+  }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const editorElement = editor.view.dom;
+
+    const handleImageResizeStart = (event: MouseEvent) => {
+      if (event.button !== 0) return;
+
+      const target = event.target;
+      if (!(target instanceof HTMLImageElement)) return;
+      if (!editorElement.contains(target)) return;
+
+      const position = editor.view.posAtDOM(target, 0);
+      const imageNode = editor.state.doc.nodeAt(position);
+      if (!imageNode || imageNode.type.name !== 'image') return;
+
+      event.preventDefault();
+
+      editor.chain().focus().setNodeSelection(position).run();
+
+      const renderedWidth = Math.round(target.getBoundingClientRect().width);
+      const renderedHeight = Math.round(target.getBoundingClientRect().height);
+      const baseWidth =
+        Number(imageNode.attrs.width) || renderedWidth || target.naturalWidth || 300;
+      const baseHeight =
+        Number(imageNode.attrs.height) || renderedHeight || target.naturalHeight || baseWidth;
+      const ratio = baseHeight / baseWidth;
+      const startX = event.clientX;
+      const maxWidth = Math.max(120, editorElement.clientWidth - 24);
+
+      let currentWidth = baseWidth;
+
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const deltaX = moveEvent.clientX - startX;
+        const nextWidth = Math.max(120, Math.min(maxWidth, Math.round(baseWidth + deltaX)));
+        if (nextWidth === currentWidth) return;
+
+        currentWidth = nextWidth;
+        const nextHeight = Math.max(1, Math.round(nextWidth * ratio));
+        const latestNode = editor.state.doc.nodeAt(position);
+        if (!latestNode || latestNode.type.name !== 'image') return;
+
+        editor.view.dispatch(
+          editor.state.tr.setNodeMarkup(position, undefined, {
+            ...latestNode.attrs,
+            width: nextWidth,
+            height: nextHeight,
+          }),
+        );
+      };
+
+      const handleMouseUp = () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    };
+
+    editorElement.addEventListener('mousedown', handleImageResizeStart);
+
+    return () => {
+      editorElement.removeEventListener('mousedown', handleImageResizeStart);
     };
   }, [editor]);
 

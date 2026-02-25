@@ -19,7 +19,7 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: [...ALLOWED_TAGS],
   allowedAttributes: {
     a: ['href', 'target', 'rel'],
-    img: ['src', 'alt', 'title'],
+    img: ['src', 'alt', 'title', 'width', 'height'],
   },
   allowedSchemes: ['http', 'https'],
   allowProtocolRelative: false,
