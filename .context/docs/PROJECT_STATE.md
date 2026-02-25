@@ -100,6 +100,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 - [x] Novo endpoint publico `GET /v1/public/programs/active` consumido pela Home para renderizar o bloco `Programa ativo` com dados reais.
 - [x] Novo endpoint publico `GET /v1/public/platform-stats` consumido pela Home para renderizar `Engajamento da cidade` com dados reais e sem o indicador `Municipios parceiros`.
 - [x] Home publica ajustada para buscar stats sem cache (`no-store`) e resolver origem da API com fallback `INTERNAL_API_URL` -> `NEXT_PUBLIC_API_URL` -> `localhost`, evitando `Inscricoes confirmadas` zerado por cache/origem incorreta.
+- [x] Padronização do resolvedor de origem da API (`resolvePublicApiBase`) em todas as rotas públicas SSR de eventos/programas, mantendo cache SEO (`revalidate`) e eliminando divergência de origem entre páginas.
 
 ### Proximos passos sugeridos
 - [ ] Expandir o design system para rotas `/public/eventos` e `/public/eventos/[slug]`.

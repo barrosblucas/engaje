@@ -1,6 +1,7 @@
 import { RichTextContent } from '@/components/editor/rich-text-content';
 import { AttendanceIntentButton } from '@/components/events/attendance-intent-button';
 import { PublicBadge } from '@/components/public/public-badge';
+import { resolvePublicApiBase } from '@/lib/public-api-base';
 import {
   formatEventDate,
   formatSlots,
@@ -14,7 +15,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-const API_BASE = process.env.INTERNAL_API_URL ?? 'http://localhost:3001';
+const API_BASE = resolvePublicApiBase();
 
 async function fetchEvent(slug: string): Promise<PublicEventDetailResponse | null> {
   const response = await fetch(`${API_BASE}/v1/public/events/${slug}`, {

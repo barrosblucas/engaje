@@ -51,6 +51,32 @@ Não exibir o indicador de vagas ("Vagas ilimitadas"/status de vagas) nas págin
 - `pnpm test` ✅
 - `pnpm build` ✅
 
+## Tarefa 08 — Padronização de origem da API nas rotas públicas SSR
+
+### Objetivo
+Aplicar o mesmo resolvedor de origem da API pública em todas as páginas SSR de eventos/programas para manter consistência entre rotas.
+
+### Arquivos alterados (principais)
+- `apps/web/src/app/public/eventos/page.tsx`
+- `apps/web/src/app/public/eventos/[slug]/page.tsx`
+- `apps/web/src/app/public/programas/page.tsx`
+- `apps/web/src/app/public/programas/[slug]/page.tsx`
+- `.context/docs/PROJECT_STATE.md`
+
+### O que mudou
+- Substituído fallback local direto (`process.env.INTERNAL_API_URL ?? localhost`) pelo utilitário `resolvePublicApiBase()` nas quatro páginas públicas SSR acima.
+- Mantida a estratégia de cache existente (`revalidate: 60`) nessas páginas para preservar comportamento SEO-first.
+
+### Impacto
+- Evita que páginas públicas diferentes consultem origens distintas da API em ambientes LAN/container.
+- Reduz chance de inconsistência de dados entre Home, lista e detalhe públicos.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
 ## Tarefa 07 — Correção de `Inscricoes confirmadas` zerado na Home
 
 ### Objetivo
