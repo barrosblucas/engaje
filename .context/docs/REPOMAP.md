@@ -53,7 +53,9 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/components/public/public-header.tsx` — Header institucional com menu responsivo e bottom tab bar mobile.
 - `src/components/public/public-header-auth.ts` — Regras puras do estado de autenticação no header público (anon vs logado), incluindo destino canônico pós-logout (`/public`).
 - `src/components/public/public-header-auth.spec.ts` — Testes Vitest das regras do menu logado e resolução de dashboard por papel.
-- `src/components/public/public-footer.tsx` — Rodape institucional com links e canais oficiais.
+- `src/components/public/public-footer.tsx` — Rodape institucional com links/canais oficiais e icones sociais para Facebook, Instagram e site institucional.
+- `src/components/public/public-footer-links.ts` — Constantes dos links oficiais de redes sociais e portal institucional usados no rodape.
+- `src/components/public/public-footer-links.spec.ts` — Testes Vitest garantindo URLs oficiais do rodape e ausencia do atalho legado de WhatsApp.
 - `src/lib/public-events.ts` — Utilitarios de categoria/data/vagas para dominio de eventos publicos, com formatacao de data/hora fixada em `America/Campo_Grande`.
 - `src/lib/public-events.spec.ts` — Testes Vitest de regras de vagas e regressao de timezone (`UTC` -> horario local de Campo Grande).
 - `src/lib/public-api-base.ts` — Resolver de origem da API para rotas publicas SSR/ISR (prioriza `INTERNAL_API_URL`, depois `NEXT_PUBLIC_API_URL` e fallback localhost).

@@ -82,6 +82,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 
 ## Pendencias e Roadmap Tecnico
 ### Concluido recentemente (2026-02-25)
+- [x] Rodape publico atualizado com links oficiais de Facebook/Instagram e atalho do site institucional no conjunto de icones sociais.
 - [x] Home publica: botao `Inscrever-se` dos cards agora navega para `/app/inscricoes/nova/[slug]` (sem popup), mantendo fluxo login -> redirect -> pagina de inscricao.
 - [x] Home publica: CTA `Quero participar` do bloco `Programa ativo` deixou de abrir modal e agora navega para `/public/programas/[slug]`.
 - [x] Usuário logado não exibe mais o botão `Inscrever-se` no menu público superior.

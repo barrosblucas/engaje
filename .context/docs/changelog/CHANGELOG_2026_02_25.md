@@ -422,3 +422,35 @@ Corrigir o comportamento do CTA `Inscrever-se` da Home publica para navegar ao f
 - `pnpm typecheck` ✅
 - `pnpm test` ✅
 - `pnpm build` ✅
+
+## Tarefa 15 — Atualizacao de links oficiais no rodape publico
+
+### Objetivo
+Atualizar os links sociais do rodape publico com os enderecos oficiais da prefeitura e substituir o atalho visual de WhatsApp por atalho do site institucional.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/public/public-footer.tsx`
+- `apps/web/src/components/public/public-footer-links.ts` (novo)
+- `apps/web/src/components/public/public-footer-links.spec.ts` (novo)
+- `.context/docs/PROJECT_STATE.md`
+- `.context/docs/REPOMAP.md`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- Rodape publico passou a usar links oficiais:
+  - Facebook: `https://www.facebook.com/PrefeituraBandeirantesMS`
+  - Instagram: `https://www.instagram.com/prefbandeirantes.ms/`
+  - Site institucional: `https://bandeirantes.ms.gov.br/v2/`
+- O icone/link que antes apontava para WhatsApp foi trocado para icone de site (`Globe`) com `aria-label` de site oficial.
+- Criado modulo dedicado `public-footer-links.ts` para centralizar os URLs.
+- Criado teste unitario `public-footer-links.spec.ts` para validar os links oficiais e garantir ausencia do atalho legado `wa.me`.
+
+### Impacto
+- O rodape institucional exibe canais oficiais corretos e remove acesso direto ao WhatsApp pelo conjunto de icones sociais.
+- Reduz risco de regressao futura na configuracao de URLs do rodape por meio de teste dedicado.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅

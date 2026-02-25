@@ -1,7 +1,8 @@
-import { Facebook, Instagram, MessageCircle } from 'lucide-react';
+import { Facebook, Globe, Instagram } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import engajeLogo from '../../../imagens/engaje logo.png';
+import { PUBLIC_FOOTER_SOCIAL_LINKS } from './public-footer-links';
 
 const QUICK_LINKS = [
   { href: '/public', label: 'Home' },
@@ -39,7 +40,7 @@ export function PublicFooter() {
 
           <div className="flex gap-2">
             <a
-              href="https://www.instagram.com"
+              href={PUBLIC_FOOTER_SOCIAL_LINKS.instagram}
               target="_blank"
               rel="noreferrer"
               aria-label="Instagram da prefeitura"
@@ -48,7 +49,7 @@ export function PublicFooter() {
               <Instagram className="h-4 w-4" aria-hidden="true" />
             </a>
             <a
-              href="https://www.facebook.com"
+              href={PUBLIC_FOOTER_SOCIAL_LINKS.facebook}
               target="_blank"
               rel="noreferrer"
               aria-label="Facebook da prefeitura"
@@ -57,13 +58,13 @@ export function PublicFooter() {
               <Facebook className="h-4 w-4" aria-hidden="true" />
             </a>
             <a
-              href="https://wa.me/5567999990000"
+              href={PUBLIC_FOOTER_SOCIAL_LINKS.website}
               target="_blank"
               rel="noreferrer"
-              aria-label="WhatsApp da prefeitura"
+              aria-label="Site oficial da prefeitura"
               className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--color-border)] text-[var(--color-text-secondary)] transition hover:-translate-y-0.5 hover:bg-[var(--color-primary-surface)] hover:text-[var(--color-primary)]"
             >
-              <MessageCircle className="h-4 w-4" aria-hidden="true" />
+              <Globe className="h-4 w-4" aria-hidden="true" />
             </a>
           </div>
         </div>
