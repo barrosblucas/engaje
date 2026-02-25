@@ -1,4 +1,4 @@
-import type { EventCategory, EventSummary } from '@engaje/contracts';
+import type { EventCategory, EventSummary, RegistrationMode } from '@engaje/contracts';
 
 const CATEGORY_LABELS: Record<EventCategory, string> = {
   cultura: 'Cultura',
@@ -86,4 +86,8 @@ export function formatSlots(availableSlots: EventSummary['availableSlots']): str
   }
 
   return `${availableSlots} vagas disponíveis`;
+}
+
+export function shouldShowSlotsForMode(registrationMode: RegistrationMode): boolean {
+  return registrationMode === 'registration';
 }

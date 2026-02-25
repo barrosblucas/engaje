@@ -4,6 +4,7 @@ import {
   formatSlots,
   getCategoryColor,
   getCategoryLabel,
+  shouldShowSlotsForMode,
 } from '@/lib/public-events';
 import type { EventCategory, PublicProgramsResponse } from '@engaje/contracts';
 import type { Metadata } from 'next';
@@ -199,9 +200,11 @@ export default async function ProgramasPage({ searchParams }: PageProps) {
                   {formatEventDate(program.startDate, program.endDate)}
                 </p>
 
-                <p className="text-sm font-semibold text-slate-700">
-                  {formatSlots(program.availableSlots)}
-                </p>
+                {shouldShowSlotsForMode(program.registrationMode) ? (
+                  <p className="text-sm font-semibold text-slate-700">
+                    {formatSlots(program.availableSlots)}
+                  </p>
+                ) : null}
 
                 <Link
                   href={`/public/programas/${program.slug}`}

@@ -6,6 +6,7 @@ import {
   formatSlots,
   getCategoryColor,
   getCategoryLabel,
+  shouldShowSlotsForMode,
 } from '@/lib/public-events';
 import { stripHtmlForTextPreview } from '@/lib/rich-text';
 import type { PublicProgramDetailResponse } from '@engaje/contracts';
@@ -63,6 +64,7 @@ export default async function ProgramDetailPage({ params }: PageProps) {
   const item = program.data;
   const isOpen = item.status === 'published';
   const isInformativeMode = item.registrationMode === 'informative';
+  const shouldShowSlots = shouldShowSlotsForMode(item.registrationMode);
   const isFull = item.availableSlots !== null && item.availableSlots <= 0;
 
   return (
@@ -97,9 +99,11 @@ export default async function ProgramDetailPage({ params }: PageProps) {
                 <PublicBadge tone={getCategoryColor(item.category)}>
                   {getCategoryLabel(item.category)}
                 </PublicBadge>
-                <PublicBadge tone={isFull ? 'danger' : 'success'}>
-                  {formatSlots(item.availableSlots)}
-                </PublicBadge>
+                {shouldShowSlots ? (
+                  <PublicBadge tone={isFull ? 'danger' : 'success'}>
+                    {formatSlots(item.availableSlots)}
+                  </PublicBadge>
+                ) : null}
                 <PublicBadge tone={isInformativeMode ? 'accent' : 'brand'}>
                   {isInformativeMode ? 'Informativo' : 'Inscrição'}
                 </PublicBadge>
@@ -139,7 +143,9 @@ export default async function ProgramDetailPage({ params }: PageProps) {
                     ? 'Programa encerrado'
                     : 'Indisponível'}
               </p>
-              <p className="mt-1 text-sm text-slate-600">{formatSlots(item.availableSlots)}</p>
+              {shouldShowSlots ? (
+                <p className="mt-1 text-sm text-slate-600">{formatSlots(item.availableSlots)}</p>
+              ) : null}
             </div>
           </div>
 
