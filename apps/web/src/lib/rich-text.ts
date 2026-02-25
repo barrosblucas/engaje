@@ -10,7 +10,6 @@ const SCRIPT_TAG_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 const INLINE_EVENT_HANDLER_REGEX = /\son\w+=(?:"[^"]*"|'[^']*')/gi;
 const JAVASCRIPT_PROTOCOL_REGEX = /javascript:/gi;
 const UPLOADS_SRC_REGEX = /(src=["'])\/uploads\/([^"']+)(["'])/gi;
-const DEFAULT_API_ORIGIN = 'http://localhost:3001';
 
 function resolveApiOrigin(rawUrl?: string): string | null {
   if (!rawUrl) return null;
@@ -23,8 +22,7 @@ function resolveApiOrigin(rawUrl?: string): string | null {
 }
 
 function resolveConfiguredApiOrigin(): string | null {
-  const configured =
-    process.env.NEXT_PUBLIC_API_URL ?? process.env.INTERNAL_API_URL ?? DEFAULT_API_ORIGIN;
+  const configured = process.env.NEXT_PUBLIC_API_URL ?? process.env.INTERNAL_API_URL;
   return resolveApiOrigin(configured);
 }
 

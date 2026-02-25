@@ -1,5 +1,29 @@
 # CHANGELOG 2026-02-24
 
+## Tarefa 24 — Correção de imagens de upload na visualização pública
+
+### Objetivo
+Corrigir o desaparecimento de imagens inseridas via upload no corpo da descrição após salvar, mantendo funcionamento em ambientes fora de `localhost`.
+
+### Arquivos alterados (principais)
+- `apps/web/src/lib/rich-text.ts`
+- `apps/web/src/lib/rich-text.spec.ts`
+
+### O que mudou
+- Removido o fallback forçado de origem da API para `http://localhost:3001` na normalização de rich text.
+- Quando `NEXT_PUBLIC_API_URL`/`INTERNAL_API_URL` não estão definidos, o `src="/uploads/*"` agora permanece relativo.
+- Mantida a reescrita para origem absoluta apenas quando a origem da API está explicitamente configurada por ambiente.
+- Adicionado teste de regressão para garantir que uploads relativos não sejam convertidos para `localhost` na renderização.
+
+### Impacto
+- Imagens enviadas pelo botão de upload continuam visíveis na edição e passam a aparecer corretamente na página de visualização.
+- Fluxo por link externo permanece inalterado.
+
+### Validação executada
+- `pnpm --filter @engaje/web test -- src/lib/rich-text.spec.ts` ✅
+- `pnpm --filter @engaje/web lint` ✅
+- `pnpm --filter @engaje/web typecheck` ✅
+
 ## Tarefa 23 — Correção de renderização de citação na visualização
 
 ### Objetivo
