@@ -474,6 +474,7 @@ export const ProgramSummarySchema = z.object({
   registrationMode: RegistrationModeSchema,
   externalCtaLabel: z.string().nullable(),
   externalCtaUrl: z.string().nullable(),
+  isHighlightedOnHome: z.boolean(),
 });
 export type ProgramSummary = z.infer<typeof ProgramSummarySchema>;
 
@@ -500,6 +501,7 @@ export const CreateProgramInputSchema = z
     externalCtaLabel: z.string().min(2).max(120).optional(),
     externalCtaUrl: z.string().url('URL externa inválida').optional(),
     dynamicFormSchema: DynamicFormSchema.optional(),
+    isHighlightedOnHome: z.boolean().optional().default(false),
     status: ProgramStatusSchema.optional().default('draft'),
   })
   .superRefine((input, ctx) => {
@@ -522,6 +524,7 @@ export const UpdateProgramInputSchema = z
     externalCtaLabel: z.string().min(2).max(120).nullable().optional(),
     externalCtaUrl: z.string().url('URL externa inválida').nullable().optional(),
     dynamicFormSchema: DynamicFormSchema.nullable().optional(),
+    isHighlightedOnHome: z.boolean().optional(),
     status: ProgramStatusSchema.optional(),
   })
   .superRefine((input, ctx) => {
@@ -550,6 +553,7 @@ export const AdminProgramSummarySchema = z.object({
   registeredCount: z.number().int(),
   createdAt: z.string().datetime(),
   registrationMode: RegistrationModeSchema,
+  isHighlightedOnHome: z.boolean(),
 });
 export type AdminProgramSummary = z.infer<typeof AdminProgramSummarySchema>;
 
@@ -591,6 +595,11 @@ export const PublicProgramDetailResponseSchema = z.object({
   data: ProgramDetailSchema,
 });
 export type PublicProgramDetailResponse = z.infer<typeof PublicProgramDetailResponseSchema>;
+
+export const PublicActiveProgramResponseSchema = z.object({
+  data: ProgramDetailSchema.nullable(),
+});
+export type PublicActiveProgramResponse = z.infer<typeof PublicActiveProgramResponseSchema>;
 
 // ─── Registrations ────────────────────────────────────────────────────────────
 

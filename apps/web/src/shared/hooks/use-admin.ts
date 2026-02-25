@@ -137,6 +137,20 @@ export function useUpdateProgram(id: string) {
   });
 }
 
+export function useSetProgramHomeHighlight() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, isHighlightedOnHome }: { id: string; isHighlightedOnHome: boolean }) =>
+      apiClient.patch(`/admin/programs/${id}`, {
+        isHighlightedOnHome,
+      } satisfies UpdateProgramInput),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'programs'] });
+    },
+  });
+}
+
 // ─── Admin Registrations ───────────────────────────────────────────────────────
 
 export function useAdminRegistrations(eventId: string, params: { page?: number; search?: string }) {

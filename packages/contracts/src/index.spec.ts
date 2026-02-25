@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
   AdminEventDetailResponseSchema,
+  AdminProgramSummarySchema,
   AdminUploadImageResponseSchema,
   CpfSchema,
   CreateAdminUserInputSchema,
   CreateEventInputSchema,
+  CreateProgramInputSchema,
   DynamicFormSchema,
+  PublicActiveProgramResponseSchema,
   PublicEventsRequestSchema,
   RegistrationModeSchema,
+  UpdateProgramInputSchema,
   UserRegistrationDetailResponseSchema,
 } from './index';
 
@@ -234,6 +238,60 @@ describe('contracts', () => {
       });
 
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('Program highlight contracts', () => {
+    it('accepts create program payload with highlight flag', () => {
+      const result = CreateProgramInputSchema.safeParse({
+        title: 'Programa Municipal',
+        category: 'cultura',
+        description: 'Programa oficial da prefeitura para toda a comunidade local.',
+        startDate: '2026-03-01T10:00:00.000Z',
+        endDate: '2026-05-01T12:00:00.000Z',
+        registrationMode: 'registration',
+        dynamicFormSchema: {
+          fields: [{ id: 'nome', type: 'short_text', label: 'Nome', required: true }],
+        },
+        status: 'published',
+        isHighlightedOnHome: true,
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts update payload with highlight toggle', () => {
+      const result = UpdateProgramInputSchema.safeParse({
+        isHighlightedOnHome: false,
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('requires highlight flag in admin program summary response', () => {
+      const result = AdminProgramSummarySchema.safeParse({
+        id: 'prg_1',
+        title: 'Programa',
+        slug: 'programa',
+        category: 'saude',
+        status: 'published',
+        startDate: '2026-03-01T10:00:00.000Z',
+        totalSlots: 100,
+        registeredCount: 12,
+        createdAt: '2026-02-24T10:00:00.000Z',
+        registrationMode: 'registration',
+        isHighlightedOnHome: true,
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts active program endpoint payload with nullable data', () => {
+      const result = PublicActiveProgramResponseSchema.safeParse({
+        data: null,
+      });
+
+      expect(result.success).toBe(true);
     });
   });
 

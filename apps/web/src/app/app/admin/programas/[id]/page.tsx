@@ -61,6 +61,7 @@ type ProgramFormData = {
   externalCtaLabel: string;
   externalCtaUrl: string;
   status: 'draft' | 'published' | 'closed' | 'cancelled';
+  isHighlightedOnHome: boolean;
 };
 
 const EMPTY_FORM: ProgramFormData = {
@@ -76,6 +77,7 @@ const EMPTY_FORM: ProgramFormData = {
   externalCtaLabel: '',
   externalCtaUrl: '',
   status: 'draft',
+  isHighlightedOnHome: false,
 };
 
 function toDateTimeLocal(value?: string | null): string {
@@ -133,6 +135,7 @@ export default function AdminProgramaFormPage({ params }: PageProps) {
       externalCtaLabel: existing.externalCtaLabel ?? '',
       externalCtaUrl: existing.externalCtaUrl ?? '',
       status: existing.status,
+      isHighlightedOnHome: existing.isHighlightedOnHome,
     });
 
     setBuilderFields(deserializeDynamicFormSchema(existing.dynamicFormSchema));
@@ -143,11 +146,24 @@ export default function AdminProgramaFormPage({ params }: PageProps) {
   function handleChange(
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) {
-    const { name, value } = event.target;
-    setForm((current) => ({
-      ...current,
-      [name]: value,
-    }));
+    const { name } = event.target;
+
+    if (event.target instanceof HTMLInputElement && event.target.type === 'checkbox') {
+      const { checked } = event.target;
+      setForm((current) => ({ ...current, [name]: checked }) as ProgramFormData);
+      return;
+    }
+
+    const { value } = event.target;
+    setForm((current) => {
+      const next = { ...current, [name]: value } as ProgramFormData;
+
+      if (name === 'status' && value !== 'published') {
+        next.isHighlightedOnHome = false;
+      }
+
+      return next;
+    });
   }
 
   function handleDescriptionChange(nextHtml: string) {
@@ -214,6 +230,12 @@ export default function AdminProgramaFormPage({ params }: PageProps) {
       return false;
     }
 
+    if (form.isHighlightedOnHome && form.status !== 'published') {
+      setError('Somente programas publicados podem ficar ativos na página inicial.');
+      setActiveStep('base');
+      return false;
+    }
+
     const hasExternalLabel = form.externalCtaLabel.trim().length > 0;
     const hasExternalUrl = form.externalCtaUrl.trim().length > 0;
 
@@ -252,6 +274,7 @@ export default function AdminProgramaFormPage({ params }: PageProps) {
       externalCtaUrl: isInformativeMode ? form.externalCtaUrl.trim() || undefined : undefined,
       dynamicFormSchema: isInformativeMode ? undefined : dynamicSchema,
       status: form.status,
+      isHighlightedOnHome: form.isHighlightedOnHome,
     };
   }
 
@@ -273,6 +296,7 @@ export default function AdminProgramaFormPage({ params }: PageProps) {
       externalCtaUrl: isInformativeMode ? form.externalCtaUrl.trim() || null : null,
       dynamicFormSchema: isInformativeMode ? null : (dynamicSchema ?? null),
       status: form.status,
+      isHighlightedOnHome: form.isHighlightedOnHome,
     };
   }
 
@@ -373,6 +397,27 @@ export default function AdminProgramaFormPage({ params }: PageProps) {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div className="field rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <label
+                  htmlFor="isHighlightedOnHome"
+                  className="flex items-start gap-3 text-sm font-semibold text-slate-900"
+                >
+                  <input
+                    id="isHighlightedOnHome"
+                    name="isHighlightedOnHome"
+                    type="checkbox"
+                    checked={form.isHighlightedOnHome}
+                    onChange={handleChange}
+                    disabled={form.status !== 'published'}
+                  />
+                  Programa ativo na página inicial
+                </label>
+                <p className="mt-2 text-xs text-slate-500">
+                  Apenas programas com status Publicado podem ser exibidos no bloco “Programa ativo”
+                  da Home.
+                </p>
               </div>
 
               <div className="field-row">

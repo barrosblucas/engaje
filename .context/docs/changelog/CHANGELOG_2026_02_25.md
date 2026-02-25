@@ -50,3 +50,53 @@ Não exibir o indicador de vagas ("Vagas ilimitadas"/status de vagas) nas págin
 - `pnpm typecheck` ✅
 - `pnpm test` ✅
 - `pnpm build` ✅
+
+## Tarefa 03 — Seleção de “Programa ativo” na Home com trava de status
+
+### Objetivo
+Permitir marcar, na criação/edição de programas, qual deve aparecer no bloco `Programa ativo` da Home, com alternância entre programas publicados e bloqueio para programas encerrados/cancelados.
+
+### Arquivos alterados (principais)
+- `prisma/schema.prisma`
+- `prisma/migrations/20260225113000_add_program_home_highlight/migration.sql`
+- `packages/contracts/src/index.ts`
+- `packages/contracts/src/index.spec.ts`
+- `apps/api/src/admin/programs/admin-programs.service.ts`
+- `apps/api/src/public/programs/public-programs.controller.ts`
+- `apps/api/src/public/programs/public-programs.service.ts`
+- `apps/api/src/super-admin-plan.spec.ts`
+- `apps/web/src/app/app/admin/programas/[id]/page.tsx`
+- `apps/web/src/app/app/admin/programas/page.tsx`
+- `apps/web/src/app/public/page.tsx`
+- `apps/web/src/components/public/home/home-page.tsx`
+- `apps/web/src/components/public/home/home-highlight-banner.tsx`
+- `apps/web/src/shared/hooks/use-admin.ts`
+- `.context/docs/PROJECT_STATE.md`
+- `.context/docs/REPOMAP.md`
+
+### O que mudou
+- Criado campo persistente `programs.is_highlighted_on_home` (migration + indice).
+- Contratos atualizados com `isHighlightedOnHome` em payloads/retornos de programas e novo schema `PublicActiveProgramResponseSchema`.
+- Backend admin de programas:
+  - valida que destaque de Home só pode ser aplicado em programa `published`,
+  - impede seleção de destaque para `closed/cancelled`,
+  - aplica transação para manter apenas um programa ativo na Home por vez.
+- Novo endpoint público `GET /v1/public/programs/active` para entregar o programa ativo da Home.
+- Home pública passou a consumir endpoint real do programa ativo no banner.
+- Admin de programas ganhou:
+  - checkbox no formulário de criação/edição para “Programa ativo na página inicial”,
+  - ação rápida na listagem para alternar o programa ativo.
+- Testes de contrato e integração foram atualizados para cobrir destaque de Home e alternância entre programas.
+
+### Impacto
+- O bloco `Programa ativo` da Home deixa de ser estático e passa a refletir configuração real do painel admin.
+- A regra de negócio evita exibir programa encerrado/cancelado como ativo.
+- A troca de programa ativo ficou operacional no fluxo de gestão sem necessidade de intervenção manual no banco.
+
+### Validação executada
+- `pnpm db:generate` ✅
+- `pnpm db:migrate` ✅
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅

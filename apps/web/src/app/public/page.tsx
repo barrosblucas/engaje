@@ -1,6 +1,6 @@
 import { HomePage } from '@/components/public/home/home-page';
 import { buildHomeStats, getFeaturedEvents } from '@/components/public/home/home-utils';
-import type { PublicEventsResponse } from '@engaje/contracts';
+import type { PublicActiveProgramResponse, PublicEventsResponse } from '@engaje/contracts';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -40,13 +40,33 @@ async function fetchHomeEvents() {
   }
 }
 
+async function fetchActiveProgram() {
+  try {
+    const response = await fetch(`${API_BASE}/v1/public/programs/active`, {
+      next: { revalidate: 60 },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch active program: ${response.status}`);
+    }
+
+    const payload = (await response.json()) as PublicActiveProgramResponse;
+    return payload.data;
+  } catch {
+    return null;
+  }
+}
+
 export default async function PublicHomePage() {
-  const { events, total } = await fetchHomeEvents();
+  const [{ events, total }, activeProgram] = await Promise.all([
+    fetchHomeEvents(),
+    fetchActiveProgram(),
+  ]);
   const stats = buildHomeStats(total);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-      <HomePage events={events} stats={stats} />
+      <HomePage events={events} activeProgram={activeProgram} stats={stats} />
     </div>
   );
 }

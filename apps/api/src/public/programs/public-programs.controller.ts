@@ -12,6 +12,11 @@ export class PublicProgramsController {
     return this.publicProgramsService.listPublishedPrograms(parsed);
   }
 
+  @Get('active')
+  getActiveProgram() {
+    return this.publicProgramsService.getActiveProgram();
+  }
+
   @Get(':slug')
   getProgram(@Param('slug') slug: string) {
     return this.publicProgramsService.getProgramBySlug(slug);

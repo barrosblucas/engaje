@@ -17,10 +17,10 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/config/app-origins.ts` — SSOT de origins do app para CORS/redirect (`APP_URLS` + fallback `APP_URL`).
 - `src/config/app-logger.ts` + `src/config/nest-logger.ts` + `src/config/http-logging.middleware.ts` — Logger estruturado com nivel dinâmico por ambiente e log HTTP com `request-id`.
 - `src/public/events/*` — Endpoints publicos `GET /v1/public/events*`.
-- `src/public/programs/*` — Endpoints publicos `GET /v1/public/programs*`.
+- `src/public/programs/*` — Endpoints publicos `GET /v1/public/programs*` + `GET /v1/public/programs/active`.
 - `src/admin/events/*` — Fluxo autenticado de gestao de eventos e export CSV.
   - inclui listagem, detalhe (`GET /v1/admin/events/:id`), edicao, status, imagens e inscritos.
-- `src/admin/programs/*` — Fluxo autenticado de gestao de programas (listagem, detalhe, criacao e edicao).
+- `src/admin/programs/*` — Fluxo autenticado de gestao de programas (listagem, detalhe, criacao e edicao), incluindo controle de programa ativo da Home.
 - `src/events/attendance-intents.*` — Endpoints autenticados para CTA de presenca:
   - `POST /v1/events/:id/attendance-intents`
   - `DELETE /v1/events/:id/attendance-intents`
@@ -34,7 +34,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/app/login/page.tsx` — Login publico com layout visual em duas colunas (mapa animado + formulario) mantendo auth SPA client-side.
 - `src/app/login/dot-map-canvas.tsx` + `src/app/login/login-redirect.ts` — Componente visual do mapa e helper de redirect seguro (anti open-redirect).
 - `src/app/app/dashboard/page.tsx` — Rota de dashboard (ponte) com redirect por perfil (`admin/super_admin` -> `/app/admin/eventos`, `citizen` -> `/app/inscricoes`).
-- `src/app/public/page.tsx` — Nova Home institucional publica (hero, categorias, destaques, noticias e microinteracoes).
+- `src/app/public/page.tsx` — Home institucional publica (hero, categorias, destaques, noticias e microinteracoes), com fetch de `GET /v1/public/programs/active` para o bloco `Programa ativo`.
 - `src/app/public/eventos/*` — Agenda publica SEO-first + detalhe de evento com CTA para fluxo autenticado de inscricao.
 - `src/app/app/inscricoes/nova/[slug]/page.tsx` — Tela autenticada (SPA) para inscricao dinamica por evento (slug).
 - `src/app/app/inscricoes/[id]/page.tsx` — Tela autenticada (SPA) de comprovante da inscricao com respostas preenchidas.
@@ -42,7 +42,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/app/public/programas/[slug]/page.tsx` — Detalhe publico de programa com modo inscricao/informativo.
 - `src/app/public/contato/page.tsx` — Pagina publica de contato institucional e FAQ.
 - `src/app/app/admin/eventos/[id]/page.tsx` — Formulario de evento em etapas com builder dinamico + preview.
-- `src/app/app/admin/programas/*` — Gestao SPA de programas com form builder dinamico.
+- `src/app/app/admin/programas/*` — Gestao SPA de programas com form builder dinamico e seletor de destaque para Home.
 - `src/components/dynamic-form/*` — Builder, renderizacao de campos dinamicos e preview.
 - `src/components/editor/rich-text-editor.tsx` — Editor rico baseado em Tiptap (Simple Editor) para campos de descricao publica com toolbar e upload de imagens.
 - `src/components/events/attendance-intent-button.tsx` — Botao `Vou ir com certeza` com contador persistente.
@@ -58,14 +58,14 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/components/public/home/home-utils.spec.ts` — Testes Vitest dos utilitarios da Home.
 - `src/lib/rich-text.spec.ts` — Testes Vitest de sanitizacao/normalizacao de HTML rico e URLs de imagem.
 - `src/shared/api-client.ts` — Cliente HTTP com `credentials: "include"` e fallback dinamico para host local atual (`window.location.hostname`) quando `NEXT_PUBLIC_API_URL` nao estiver definido.
-- `src/shared/hooks/use-admin.ts` — Hooks admin consumindo `/admin/events*` e `/admin/programs*`.
+- `src/shared/hooks/use-admin.ts` — Hooks admin consumindo `/admin/events*` e `/admin/programs*`, incluindo mutacao para alternar programa ativo na Home.
 - `src/shared/hooks/use-events.ts` — Hooks publicos/autenticados para eventos, programas, inscricoes (lista, detalhe, criacao, cancelamento) e attendance intents.
 - `src/shared/dynamic-form/*` — Utilitarios de serializacao/deserializacao e regras de modo para o builder.
 - `src/middleware.ts` — Protecao de `/app/*` redirecionando para `/login?redirect=...`.
 
 ## packages/contracts
-- `src/index.ts` — SSOT de schemas Zod dos dominios Auth, Events, Programs, Dynamic Form, Registrations e Attendance Intents.
-- `src/index.spec.ts` — Testes de contratos (CPF, defaults, registration mode, dynamic form e validacoes de CTA/schema).
+- `src/index.ts` — SSOT de schemas Zod dos dominios Auth, Events, Programs, Dynamic Form, Registrations e Attendance Intents (inclui `isHighlightedOnHome` e `PublicActiveProgramResponseSchema`).
+- `src/index.spec.ts` — Testes de contratos (CPF, defaults, registration mode, dynamic form, validacoes de CTA/schema e destaque de programa na Home).
 - `vitest.config.ts` — Config do Vitest priorizando fontes `.ts` em `src/`.
 
 ## packages/utils
@@ -73,8 +73,9 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/index.spec.ts` — Testes unitarios dos helpers puros.
 
 ## prisma
-- `schema.prisma` — Modelos do dominio com eventos/programas, modos de inscricao, `form_data` e `event_attendance_intents`.
+- `schema.prisma` — Modelos do dominio com eventos/programas, modos de inscricao, `form_data`, `event_attendance_intents` e flag `programs.is_highlighted_on_home`.
 - `migrations/20260224123000_super_admin_form_builder_attendance` — Migration da Fase Super Admin (registration mode, dynamic schema e intents).
+- `migrations/20260225113000_add_program_home_highlight` — Migration para suporte ao `Programa ativo` da Home com indice por destaque/status.
 
 ## Testes de integracao relevantes
 - `apps/api/src/admin/events/admin-events.spec.ts` — Cobre `GET /v1/admin/events/:id` (sucesso, 404 e acesso negado para cidadao).

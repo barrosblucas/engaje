@@ -24,6 +24,17 @@ type ProgramWithDetails = Prisma.ProgramGetPayload<{
 export class AdminProgramsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private ensureHomeHighlightCompatibility(
+    status: 'draft' | 'published' | 'closed' | 'cancelled',
+    isHighlightedOnHome: boolean,
+  ) {
+    if (isHighlightedOnHome && status !== 'published') {
+      throw new UnprocessableEntityException(
+        'Somente programas publicados podem ficar ativos na página inicial',
+      );
+    }
+  }
+
   async createProgram(input: CreateProgramInputLocal, createdById: string) {
     const parsed = CreateProgramInputSchemaLocal.parse(input);
     const sanitizedDescription = sanitizeRichTextHtml(parsed.description);
@@ -39,31 +50,51 @@ export class AdminProgramsService {
       select: { id: true },
     });
     const slug = existingSlug ? generateUniqueSlug(parsed.title, createId().slice(0, 6)) : baseSlug;
+    const nextStatus = parsed.status ?? 'draft';
+    const shouldHighlightOnHome = parsed.isHighlightedOnHome ?? false;
+    this.ensureHomeHighlightCompatibility(nextStatus, shouldHighlightOnHome);
 
-    const program = await this.prisma.program.create({
-      data: {
-        title: parsed.title,
-        slug,
-        description: sanitizedDescription,
-        category: parsed.category,
-        startDate: new Date(parsed.startDate),
-        endDate: new Date(parsed.endDate),
-        totalSlots: parsed.totalSlots,
-        bannerUrl: parsed.bannerUrl ?? null,
-        bannerAltText: parsed.bannerAltText,
-        registrationMode: parsed.registrationMode,
-        externalCtaLabel: parsed.externalCtaLabel ?? null,
-        externalCtaUrl: parsed.externalCtaUrl ?? null,
-        dynamicFormSchema: parsed.dynamicFormSchema
-          ? (parsed.dynamicFormSchema as Prisma.InputJsonValue)
-          : undefined,
-        status: parsed.status ?? 'draft',
-        createdById,
-      },
-      include: {
-        _count: { select: { registrations: { where: { status: 'confirmed' } } } },
-      },
-    });
+    const createData: Prisma.ProgramCreateInput = {
+      title: parsed.title,
+      slug,
+      description: sanitizedDescription,
+      category: parsed.category,
+      startDate: new Date(parsed.startDate),
+      endDate: new Date(parsed.endDate),
+      totalSlots: parsed.totalSlots,
+      bannerUrl: parsed.bannerUrl ?? null,
+      bannerAltText: parsed.bannerAltText,
+      registrationMode: parsed.registrationMode,
+      externalCtaLabel: parsed.externalCtaLabel ?? null,
+      externalCtaUrl: parsed.externalCtaUrl ?? null,
+      dynamicFormSchema: parsed.dynamicFormSchema
+        ? (parsed.dynamicFormSchema as Prisma.InputJsonValue)
+        : undefined,
+      status: nextStatus,
+      isHighlightedOnHome: shouldHighlightOnHome,
+      createdBy: { connect: { id: createdById } },
+    };
+
+    const program = shouldHighlightOnHome
+      ? await this.prisma.$transaction(async (tx) => {
+          await tx.program.updateMany({
+            where: { isHighlightedOnHome: true },
+            data: { isHighlightedOnHome: false },
+          });
+
+          return tx.program.create({
+            data: createData,
+            include: {
+              _count: { select: { registrations: { where: { status: 'confirmed' } } } },
+            },
+          });
+        })
+      : await this.prisma.program.create({
+          data: createData,
+          include: {
+            _count: { select: { registrations: { where: { status: 'confirmed' } } } },
+          },
+        });
 
     return this.mapProgramToDetail(program);
   }
@@ -103,6 +134,7 @@ export class AdminProgramsService {
           slug: true,
           category: true,
           status: true,
+          isHighlightedOnHome: true,
           startDate: true,
           totalSlots: true,
           createdAt: true,
@@ -124,6 +156,7 @@ export class AdminProgramsService {
         registeredCount: program._count.registrations,
         createdAt: program.createdAt.toISOString(),
         registrationMode: program.registrationMode,
+        isHighlightedOnHome: program.isHighlightedOnHome,
       })),
       meta: {
         page,
@@ -153,7 +186,9 @@ export class AdminProgramsService {
       where: { id },
       select: {
         id: true,
+        status: true,
         registrationMode: true,
+        isHighlightedOnHome: true,
         dynamicFormSchema: true,
         _count: { select: { registrations: { where: { status: 'confirmed' } } } },
       },
@@ -185,9 +220,18 @@ export class AdminProgramsService {
       }
     }
 
+    const nextStatus = parsed.status ?? existing.status;
+    const nextHighlight = parsed.isHighlightedOnHome ?? existing.isHighlightedOnHome;
+    if (parsed.isHighlightedOnHome === true) {
+      this.ensureHomeHighlightCompatibility(nextStatus, true);
+    }
+
     const data: Record<string, unknown> = { ...parsed };
     if (parsed.startDate) data.startDate = new Date(parsed.startDate);
     if (parsed.endDate) data.endDate = new Date(parsed.endDate);
+    if (nextStatus !== 'published') {
+      data.isHighlightedOnHome = false;
+    }
     if (parsed.description !== undefined) {
       const sanitizedDescription = sanitizeRichTextHtml(parsed.description);
       if (extractPlainTextFromHtml(sanitizedDescription).length === 0) {
@@ -196,13 +240,33 @@ export class AdminProgramsService {
       data.description = sanitizedDescription;
     }
 
-    const program = await this.prisma.program.update({
-      where: { id },
-      data,
-      include: {
-        _count: { select: { registrations: { where: { status: 'confirmed' } } } },
-      },
-    });
+    const shouldHighlightOnHome = nextStatus === 'published' && nextHighlight;
+
+    const program = shouldHighlightOnHome
+      ? await this.prisma.$transaction(async (tx) => {
+          await tx.program.updateMany({
+            where: { id: { not: id }, isHighlightedOnHome: true },
+            data: { isHighlightedOnHome: false },
+          });
+
+          return tx.program.update({
+            where: { id },
+            data: {
+              ...data,
+              isHighlightedOnHome: true,
+            },
+            include: {
+              _count: { select: { registrations: { where: { status: 'confirmed' } } } },
+            },
+          });
+        })
+      : await this.prisma.program.update({
+          where: { id },
+          data,
+          include: {
+            _count: { select: { registrations: { where: { status: 'confirmed' } } } },
+          },
+        });
 
     return this.mapProgramToDetail(program);
   }
@@ -227,6 +291,7 @@ export class AdminProgramsService {
       externalCtaUrl: program.externalCtaUrl ?? null,
       totalSlots: program.totalSlots,
       status: program.status,
+      isHighlightedOnHome: program.isHighlightedOnHome,
       dynamicFormSchema: this.mapDynamicFormSchema(program.dynamicFormSchema),
       createdAt: program.createdAt.toISOString(),
     };

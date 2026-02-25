@@ -199,6 +199,8 @@ model Program {
   externalCtaLabel String?          @map("external_cta_label")
   externalCtaUrl   String?          @map("external_cta_url")
   dynamicFormSchema Json?           @map("dynamic_form_schema")
+  /// Indica se o programa deve ser exibido como destaque da Home pública.
+  isHighlightedOnHome Boolean       @default(false) @map("is_highlighted_on_home")
   status           ProgramStatus    @default(draft)
   createdById      String           @map("created_by")
   createdAt        DateTime         @default(now()) @map("created_at")
@@ -209,6 +211,7 @@ model Program {
 
   @@index([slug])
   @@index([status, startDate])
+  @@index([isHighlightedOnHome, status])
   @@map("programs")
 }
 

@@ -220,6 +220,7 @@ describe('Super Admin plan backend (integration)', () => {
         fields: [{ id: 'renda_familiar', type: 'number', label: 'Renda familiar', required: true }],
       },
       status: 'published',
+      isHighlightedOnHome: true,
     };
 
     const registrationProgramResponse = await adminAgent
@@ -233,6 +234,7 @@ describe('Super Admin plan backend (integration)', () => {
     expect(registrationProgramResponse.body.registrationMode).toBe('registration');
     expect(registrationProgramResponse.body.dynamicFormSchema.fields[0].id).toBe('renda_familiar');
     expect(registrationProgramResponse.body.description).not.toContain('<script');
+    expect(registrationProgramResponse.body.isHighlightedOnHome).toBe(true);
 
     const informativeProgramPayload = {
       title: `Programa Informativo ${runId}`,
@@ -257,12 +259,13 @@ describe('Super Admin plan backend (integration)', () => {
     expect(informativeProgramResponse.body.registrationMode).toBe('informative');
     expect(informativeProgramResponse.body.externalCtaLabel).toBe('Acessar portal');
     expect(informativeProgramResponse.body.dynamicFormSchema).toBeNull();
+    expect(informativeProgramResponse.body.isHighlightedOnHome).toBe(false);
 
     const listResponse = await adminAgent.get('/v1/admin/programs').expect(200);
     expect(listResponse.body.data).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: registrationProgramId }),
-        expect.objectContaining({ id: informativeProgramId }),
+        expect.objectContaining({ id: registrationProgramId, isHighlightedOnHome: true }),
+        expect.objectContaining({ id: informativeProgramId, isHighlightedOnHome: false }),
       ]),
     );
 
@@ -277,6 +280,22 @@ describe('Super Admin plan backend (integration)', () => {
       .send({ title: `Programa Inscrição ${runId} Atualizado` })
       .expect(200);
     expect(updateResponse.body.title).toContain('Atualizado');
+
+    const setSecondAsActiveResponse = await adminAgent
+      .patch(`/v1/admin/programs/${informativeProgramId}`)
+      .send({ isHighlightedOnHome: true })
+      .expect(200);
+    expect(setSecondAsActiveResponse.body.isHighlightedOnHome).toBe(true);
+
+    const previousProgramAfterSwitch = await adminAgent
+      .get(`/v1/admin/programs/${registrationProgramId}`)
+      .expect(200);
+    expect(previousProgramAfterSwitch.body.isHighlightedOnHome).toBe(false);
+
+    await adminAgent
+      .patch(`/v1/admin/programs/${informativeProgramId}`)
+      .send({ status: 'closed', isHighlightedOnHome: true })
+      .expect(422);
   });
 
   it('public event and program details expose mode, cta and dynamic form fields', async () => {
@@ -304,6 +323,12 @@ describe('Super Admin plan backend (integration)', () => {
         expect.objectContaining({ slug: informativeProgramSlug }),
       ]),
     );
+
+    const activeProgram = await request(app.getHttpServer())
+      .get('/v1/public/programs/active')
+      .expect(200);
+    expect(activeProgram.body.data.slug).toBe(informativeProgramSlug);
+    expect(activeProgram.body.data.isHighlightedOnHome).toBe(true);
 
     const registrationProgramDetail = await request(app.getHttpServer())
       .get(`/v1/public/programs/${registrationProgramSlug}`)

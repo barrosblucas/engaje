@@ -41,6 +41,7 @@ export class PublicProgramsService {
           title: true,
           slug: true,
           category: true,
+          isHighlightedOnHome: true,
           startDate: true,
           endDate: true,
           bannerUrl: true,
@@ -69,6 +70,7 @@ export class PublicProgramsService {
         registrationMode: program.registrationMode,
         externalCtaLabel: program.externalCtaLabel,
         externalCtaUrl: program.externalCtaUrl,
+        isHighlightedOnHome: program.isHighlightedOnHome,
       })),
       meta: {
         page,
@@ -107,6 +109,45 @@ export class PublicProgramsService {
         externalCtaUrl: program.externalCtaUrl,
         totalSlots: program.totalSlots,
         status: program.status,
+        isHighlightedOnHome: program.isHighlightedOnHome,
+        dynamicFormSchema: this.mapDynamicFormSchema(program.dynamicFormSchema),
+        createdAt: program.createdAt.toISOString(),
+      },
+    };
+  }
+
+  async getActiveProgram() {
+    const program = await this.prisma.program.findFirst({
+      where: { status: 'published', isHighlightedOnHome: true },
+      include: {
+        _count: { select: { registrations: { where: { status: 'confirmed' } } } },
+      },
+      orderBy: { startDate: 'asc' },
+    });
+
+    if (!program) {
+      return { data: null };
+    }
+
+    return {
+      data: {
+        id: program.id,
+        title: program.title,
+        slug: program.slug,
+        category: program.category,
+        description: program.description,
+        startDate: program.startDate.toISOString(),
+        endDate: program.endDate.toISOString(),
+        bannerUrl: program.bannerUrl,
+        bannerAltText: program.bannerAltText,
+        availableSlots:
+          program.totalSlots === null ? null : program.totalSlots - program._count.registrations,
+        registrationMode: program.registrationMode,
+        externalCtaLabel: program.externalCtaLabel,
+        externalCtaUrl: program.externalCtaUrl,
+        totalSlots: program.totalSlots,
+        status: program.status,
+        isHighlightedOnHome: program.isHighlightedOnHome,
         dynamicFormSchema: this.mapDynamicFormSchema(program.dynamicFormSchema),
         createdAt: program.createdAt.toISOString(),
       },

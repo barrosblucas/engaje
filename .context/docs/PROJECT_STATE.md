@@ -16,7 +16,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 ## Dominios Implementados
 
 ### Public Web (Next.js)
-- Home institucional em `apps/web/src/app/public/page.tsx` com design system, microinteracoes e dark mode.
+- Home institucional em `apps/web/src/app/public/page.tsx` com design system, microinteracoes, dark mode e bloco `Programa ativo` alimentado pela API publica.
 - Agenda publica em `apps/web/src/app/public/eventos/*` com filtros, cards e paginacao.
 - Detalhe de evento em `apps/web/src/app/public/eventos/[slug]/page.tsx` com:
   - renderizacao condicional por `registrationMode` (`registration` x `informative`),
@@ -36,7 +36,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
   - gestao de programas (`/app/admin/programas` e `/app/admin/programas/[id]`).
 
 ### API (NestJS)
-- Endpoints publicos `GET /v1/public/events*` e `GET /v1/public/programs*`.
+- Endpoints publicos `GET /v1/public/events*` e `GET /v1/public/programs*` (incluindo `GET /v1/public/programs/active` para o destaque da Home).
 - Endpoints autenticados para auth, admin de eventos/programas, inscricoes e intencao de presenca.
 
 ## Rotas API Ativas
@@ -46,6 +46,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 | `GET` | `/v1/public/events` | Lista publica de eventos com filtros/paginacao | Ativo |
 | `GET` | `/v1/public/events/:slug` | Detalhe publico de evento | Ativo |
 | `GET` | `/v1/public/programs` | Lista publica de programas com filtros/paginacao | Ativo |
+| `GET` | `/v1/public/programs/active` | Programa atualmente ativo para o bloco da Home publica | Ativo |
 | `GET` | `/v1/public/programs/:slug` | Detalhe publico de programa | Ativo |
 | `POST` | `/v1/auth/login` | Login de usuario | Ativo |
 | `POST` | `/v1/registrations` | Criacao de inscricao autenticada com `formData` dinamico | Ativo |
@@ -74,10 +75,11 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 ### PostgreSQL (unico)
 - `users`, `events`, `registrations`, `programs`, `program_registrations` e `event_attendance_intents`.
 - `events` e `programs` com `registration_mode`, `external_cta_*` e `dynamic_form_schema`.
+- `programs` com flag `is_highlighted_on_home` para controlar o `Programa ativo` da Home (somente programas `published`).
 - `registrations` com `form_data` (JSON) para respostas do builder dinamico.
 
 ## Pendencias e Roadmap Tecnico
-### Concluido recentemente (2026-02-24)
+### Concluido recentemente (2026-02-25)
 - [x] Contract-first completo para modo de inscricao (`registration`/`informative`) e form builder dinamico em eventos/programas.
 - [x] Novos endpoints publicos de programas (`/v1/public/programs*`) e admin de programas (`/v1/admin/programs*`).
 - [x] Fluxo de inscricao autenticada evoluido para persistir `formData` e validar obrigatorios dinamicos.
@@ -92,6 +94,9 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 - [x] Correcao de roteamento admin no web (`/v1/v1/*`) e adicao do endpoint de detalhe `GET /v1/admin/events/:id`.
 - [x] Fluxo de inscricao no detalhe publico alterado para CTA + redirecionamento para rota autenticada `/app/inscricoes/nova/[slug]` (middleware de login preservado).
 - [x] Comprovante da inscricao para usuario autenticado em `/app/inscricoes/[id]` com endpoint dedicado `GET /v1/registrations/:id`.
+- [x] Seletor de programa ativo na Home: admin agora define `isHighlightedOnHome` na criacao/edicao e pode alternar rapidamente na listagem.
+- [x] Regra de negocio no backend para bloquear destaque de programas `closed/cancelled` e manter apenas 1 programa ativo na Home por vez.
+- [x] Novo endpoint publico `GET /v1/public/programs/active` consumido pela Home para renderizar o bloco `Programa ativo` com dados reais.
 
 ### Proximos passos sugeridos
 - [ ] Expandir o design system para rotas `/public/eventos` e `/public/eventos/[slug]`.

@@ -1,7 +1,7 @@
 'use client';
 
 import { ToastProvider, useToast } from '@/components/ui/toast';
-import type { EventSummary } from '@engaje/contracts';
+import type { EventSummary, ProgramDetail } from '@engaje/contracts';
 import { useState } from 'react';
 import { HomeCategories } from './home-categories';
 import { HomeEngagement } from './home-engagement';
@@ -15,10 +15,11 @@ import { countEventsThisWeek } from './home-utils';
 
 interface HomePageProps {
   events: EventSummary[];
+  activeProgram: ProgramDetail | null;
   stats: HomePageStats;
 }
 
-function HomePageContent({ events, stats }: HomePageProps) {
+function HomePageContent({ events, activeProgram, stats }: HomePageProps) {
   const { showToast } = useToast();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -44,7 +45,7 @@ function HomePageContent({ events, stats }: HomePageProps) {
       <HomeFeaturedEvents events={events} onQuickApply={handleQuickApply} />
 
       {/* Banner secundario de campanha */}
-      <HomeHighlightBanner onOpenModal={() => setModalOpen(true)} />
+      <HomeHighlightBanner activeProgram={activeProgram} onOpenModal={() => setModalOpen(true)} />
 
       {/* Bloco de indicadores com contadores animados */}
       <HomeStats stats={stats} />

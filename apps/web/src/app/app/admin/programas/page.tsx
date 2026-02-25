@@ -1,8 +1,9 @@
 'use client';
 
-import { useAdminPrograms } from '@/shared/hooks/use-admin';
+import { useAdminPrograms, useSetProgramHomeHighlight } from '@/shared/hooks/use-admin';
 import { useLogout, useMe } from '@/shared/hooks/use-auth';
 import Link from 'next/link';
+import { useState } from 'react';
 
 const STATUS_LABELS: Record<string, string> = {
   draft: 'Rascunho',
@@ -20,6 +21,17 @@ export default function AdminProgramasPage() {
   const { data: meData } = useMe();
   const { mutate: logout } = useLogout();
   const { data, isLoading, isError } = useAdminPrograms({});
+  const { mutate: setProgramHomeHighlight, isPending: isSettingHomeHighlight } =
+    useSetProgramHomeHighlight();
+  const [pendingProgramId, setPendingProgramId] = useState<string | null>(null);
+
+  function handleSetAsHomeProgram(programId: string) {
+    setPendingProgramId(programId);
+    setProgramHomeHighlight(
+      { id: programId, isHighlightedOnHome: true },
+      { onSettled: () => setPendingProgramId(null) },
+    );
+  }
 
   return (
     <div className="app-page">
@@ -66,6 +78,7 @@ export default function AdminProgramasPage() {
                   <th>Modo</th>
                   <th>Vagas</th>
                   <th>Início</th>
+                  <th>Home</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -90,6 +103,24 @@ export default function AdminProgramasPage() {
                         month: '2-digit',
                         year: 'numeric',
                       })}
+                    </td>
+                    <td>
+                      {program.isHighlightedOnHome ? (
+                        <span className="status-badge status-published">Ativo</span>
+                      ) : program.status === 'published' ? (
+                        <button
+                          type="button"
+                          className="btn-sm"
+                          onClick={() => handleSetAsHomeProgram(program.id)}
+                          disabled={isSettingHomeHighlight}
+                        >
+                          {pendingProgramId === program.id && isSettingHomeHighlight
+                            ? 'Ativando...'
+                            : 'Definir ativo'}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-slate-500">Indisponível</span>
+                      )}
                     </td>
                     <td className="actions-cell">
                       <Link href={`/app/admin/programas/${program.id}`} className="btn-sm">
