@@ -12,11 +12,11 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Engaje | Portal Municipal de Eventos e Iniciativas',
   description:
-    'Plataforma oficial da Prefeitura de Bandeirantes - MS para eventos, inscricoes online e programas municipais.',
+    'Plataforma oficial da Prefeitura de Bandeirantes - MS para eventos, inscrições online e programas municipais.',
   openGraph: {
     title: 'Engaje - Bandeirantes Conectada',
     description:
-      'Descubra eventos, campanhas e iniciativas municipais com inscricao digital simples.',
+      'Descubra eventos, campanhas e iniciativas municipais com inscrição digital simples.',
   },
 };
 

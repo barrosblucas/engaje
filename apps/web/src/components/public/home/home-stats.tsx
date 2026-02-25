@@ -50,7 +50,7 @@ export function HomeStats({ stats }: HomeStatsProps) {
   const items = useMemo(
     () => [
       { label: 'Eventos realizados', value: stats.eventsCount },
-      { label: 'Inscricoes confirmadas', value: stats.registrationsCount },
+      { label: 'Inscrições confirmadas', value: stats.registrationsCount },
       { label: 'Programas ativos', value: stats.activeProgramsCount },
     ],
     [stats],

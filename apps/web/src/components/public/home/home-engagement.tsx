@@ -10,12 +10,12 @@ export function HomeEngagement() {
     <section className="space-y-6">
       <div className="space-y-6">
         <Reveal>
-          <div className="rounded-3xl border border-[var(--color-border)] bg-white p-5 shadow-[0_12px_25px_rgba(15,23,42,0.08)] sm:p-6">
+          <div className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[0_12px_25px_rgba(15,23,42,0.08)] sm:p-6">
             <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
               FAQ dos programas
             </h3>
             <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-              Duvidas frequentes para facilitar o acesso da populacao.
+              Dúvidas frequentes para facilitar o acesso da população.
             </p>
             <div className="mt-4">
               <Accordion items={HOME_FAQ} />
@@ -24,7 +24,7 @@ export function HomeEngagement() {
         </Reveal>
 
         <Reveal>
-          <div className="rounded-3xl border border-[var(--color-border)] bg-white p-5 shadow-[0_12px_25px_rgba(15,23,42,0.08)] sm:p-6">
+          <div className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[0_12px_25px_rgba(15,23,42,0.08)] sm:p-6">
             <h3 className="text-xl font-semibold text-[var(--color-text-primary)]">
               Linha do tempo de acoes
             </h3>

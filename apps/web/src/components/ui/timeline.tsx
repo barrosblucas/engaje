@@ -44,7 +44,7 @@ export function Timeline({ items }: TimelineProps) {
             whileInView={reducedMotion ? {} : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.35 }}
             transition={{ duration: 0.35, delay: index * 0.07 }}
-            className="relative rounded-2xl border border-[var(--color-border)] bg-white p-4"
+            className="relative rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4"
           >
             <span className="absolute -left-[1.56rem] top-6 h-3 w-3 rounded-full border-2 border-[var(--color-surface)] bg-[var(--color-accent)]" />
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--color-text-muted)]">

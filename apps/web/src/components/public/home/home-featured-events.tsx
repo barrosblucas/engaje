@@ -46,7 +46,7 @@ export function HomeFeaturedEvents({ events }: HomeFeaturedEventsProps) {
               Proximos eventos
             </p>
             <h2 className="mt-1 text-[clamp(1.35rem,3vw,2rem)] font-semibold text-[var(--color-text-primary)]">
-              Participe das proximas acoes da cidade
+              Participe das próximas acões da cidade
             </h2>
           </div>
           <Button asChild variant="ghost">

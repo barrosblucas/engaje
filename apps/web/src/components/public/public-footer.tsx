@@ -34,8 +34,7 @@ export function PublicFooter() {
           </div>
 
           <p className="max-w-sm text-sm leading-relaxed text-[var(--color-text-secondary)]">
-            Portal oficial para divulgacao de eventos, programas e iniciativas de engajamento
-            civico.
+            Portal oficial para divulgação de eventos, programas e iniciativas de engajamento cívico.
           </p>
 
           <div className="flex gap-2">
@@ -86,9 +85,9 @@ export function PublicFooter() {
           <p className="font-semibold text-[var(--color-text-primary)]">Contato institucional</p>
           <p>Ouvidoria: 0800 000 000</p>
           <p>WhatsApp: (67) 99999-0000</p>
-          <p>E-mail: atendimento@bandeirantes.ms.gov.br</p>
-          <p>Praca Central, 100 - Centro</p>
-          <p className="text-xs">Seg a Sex, 8h as 17h</p>
+          <p>E-mail: contato@bandeirantes.ms.gov.br</p>
+          <p>Rua Artur Bernardes, 1996 - Centro</p>
+          <p className="text-xs">Seg a Sex, 7h as 17h</p>
         </div>
       </div>
 

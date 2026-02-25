@@ -130,19 +130,19 @@ export default function InscricaoDetailPage() {
           </Link>
         </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft">
+        <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-soft">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
                 Protocolo
               </p>
-              <p className="font-display text-2xl font-semibold text-slate-900">
+              <p className="font-display text-2xl font-semibold text-[var(--color-text-primary)]">
                 {registration.protocolNumber}
               </p>
             </div>
 
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
                 Status
               </p>
               <span className={`status-badge ${STATUS_CLASS[registration.status] ?? ''}`}>
@@ -151,61 +151,61 @@ export default function InscricaoDetailPage() {
             </div>
 
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
                 Data da inscrição
               </p>
-              <p className="text-sm text-slate-700">{formatDateTime(registration.createdAt)}</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{formatDateTime(registration.createdAt)}</p>
             </div>
 
             {registration.cancelledAt ? (
               <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
                   Data de cancelamento
                 </p>
-                <p className="text-sm text-slate-700">{formatDateTime(registration.cancelledAt)}</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{formatDateTime(registration.cancelledAt)}</p>
               </div>
             ) : null}
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft">
-          <h2 className="font-display text-xl font-semibold text-slate-900">Dados do evento</h2>
-          <div className="mt-3 grid gap-3 text-sm text-slate-700 md:grid-cols-2">
+        <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-soft">
+          <h2 className="font-display text-xl font-semibold text-[var(--color-text-primary)]">Dados do evento</h2>
+          <div className="mt-3 grid gap-3 text-sm text-[var(--color-text-secondary)] md:grid-cols-2">
             <p>
-              <span className="font-semibold text-slate-900">Evento:</span>{' '}
+              <span className="font-semibold text-[var(--color-text-primary)]">Evento:</span>{' '}
               {registration.event.title}
             </p>
             <p>
-              <span className="font-semibold text-slate-900">Data:</span>{' '}
+              <span className="font-semibold text-[var(--color-text-primary)]">Data:</span>{' '}
               {new Date(registration.event.startDate).toLocaleDateString('pt-BR')}
             </p>
             <p>
-              <span className="font-semibold text-slate-900">Local:</span>{' '}
+              <span className="font-semibold text-[var(--color-text-primary)]">Local:</span>{' '}
               {registration.event.locationName}
             </p>
             <p>
-              <span className="font-semibold text-slate-900">Endereço:</span>{' '}
+              <span className="font-semibold text-[var(--color-text-primary)]">Endereço:</span>{' '}
               {registration.event.locationAddress}
             </p>
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft">
-          <h2 className="font-display text-xl font-semibold text-slate-900">
+        <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-soft">
+          <h2 className="font-display text-xl font-semibold text-[var(--color-text-primary)]">
             Informações preenchidas
           </h2>
 
           {mappedAnswers.length > 0 ? (
             <div className="mt-4 space-y-3">
               {mappedAnswers.map((answer) => (
-                <div key={answer.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                  <p className="text-sm font-semibold text-slate-900">{answer.label}</p>
-                  <p className="mt-1 text-sm text-slate-700">{answer.value}</p>
+                <div key={answer.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-3">
+                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">{answer.label}</p>
+                  <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{answer.value}</p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="mt-3 text-sm text-slate-600">
+            <p className="mt-3 text-sm text-[var(--color-text-muted)]">
               Esta inscrição não possui dados de formulário preenchidos.
             </p>
           )}

@@ -18,7 +18,7 @@ export function HomeCategories() {
             </h2>
           </div>
           <p className="max-w-lg text-sm text-[var(--color-text-secondary)]">
-            Saude, esporte, cultura, empreendedorismo e iniciativas de cidadania em um unico portal.
+            Saúde, esporte, cultura, empreendedorismo e iniciativas de cidadania em um único portal..
           </p>
         </div>
       </Reveal>

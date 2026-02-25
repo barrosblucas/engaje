@@ -110,7 +110,7 @@ export function HomeHero({ eventsThisWeek }: HomeHeroProps) {
           </p>
           <p className="mt-2 text-lg font-semibold">{eventsThisWeek} eventos esta semana</p>
           <p className="mt-1 text-sm text-blue-50">
-            Acompanhe inscricoes abertas e garanta sua vaga com poucos cliques.
+            Acompanhe inscrições abertas e garanta sua vaga com poucos cliques.
           </p>
         </motion.div>
       </motion.div>

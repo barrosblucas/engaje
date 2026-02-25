@@ -78,7 +78,7 @@ export function PublicHeader() {
     <>
       <a
         href="#conteudo-principal"
-        className="skip-link sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-white focus:px-4 focus:py-2 focus:font-semibold focus:text-[var(--color-primary)]"
+        className="skip-link sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-[var(--color-surface)] focus:px-4 focus:py-2 focus:font-semibold focus:text-[var(--color-primary)]"
       >
         Pular para o conteudo principal
       </a>
@@ -89,7 +89,7 @@ export function PublicHeader() {
         transition={{ duration: 0.35 }}
         className={`sticky top-0 z-50 border-b transition ${
           isScrolled
-            ? 'border-[rgba(226,232,240,0.9)] bg-[rgba(248,249,252,0.92)] shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-xl'
+            ? 'border-[var(--color-header-scrolled-border)] bg-[var(--color-header-scrolled-bg)] shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-xl'
             : 'border-transparent bg-transparent'
         }`}
       >
@@ -125,7 +125,7 @@ export function PublicHeader() {
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                     active
                       ? 'bg-[var(--color-primary-surface)] text-[var(--color-primary)]'
-                      : 'text-[var(--color-text-secondary)] hover:bg-white hover:text-[var(--color-text-primary)]'
+                      : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text-primary)]'
                   }`}
                 >
                   {item.label}
@@ -229,7 +229,7 @@ export function PublicHeader() {
 
       <nav
         aria-label="Navegacao rapida"
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--color-border)] bg-[rgba(248,249,252,0.96)] px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] pt-2 backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--color-border)] bg-[var(--color-nav-mobile-bg)] px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] pt-2 backdrop-blur md:hidden"
       >
         <ul className="grid grid-cols-4 gap-2">
           {mobileNav.map((item) => {
@@ -244,7 +244,7 @@ export function PublicHeader() {
                   className={`flex h-12 flex-col items-center justify-center rounded-xl text-[0.68rem] font-semibold transition ${
                     active
                       ? 'bg-[var(--color-primary-surface)] text-[var(--color-primary)]'
-                      : 'text-[var(--color-text-secondary)] hover:bg-white'
+                      : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]'
                   }`}
                 >
                   <Icon className="mb-0.5 h-4 w-4" aria-hidden="true" />

@@ -27,20 +27,20 @@ export const HOME_CATEGORIES: HomeCategory[] = [
   {
     id: 'cultura',
     label: 'Cultura & Lazer',
-    description: 'Feiras, festas tradicionais e programacao cultural.',
+    description: 'Feiras, festas tradicionais e programação cultural.',
     colorToken: '#7c3aed',
     icon: PartyPopper,
   },
   {
     id: 'empreendedorismo',
     label: 'Empreendedorismo',
-    description: 'Capacitacao e redes para fortalecer negocios locais.',
+    description: 'Capacitação e redes para fortalecer negócios locais.',
     colorToken: 'var(--color-primary)',
     icon: BriefcaseBusiness,
   },
   {
     id: 'vacinacao',
-    label: 'Vacinacao',
+    label: 'Vacinação',
     description: 'Campanhas com cronograma atualizado por unidade.',
     colorToken: '#1f9d62',
     icon: Activity,
@@ -48,7 +48,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
   {
     id: 'meio-ambiente',
     label: 'Meio Ambiente',
-    description: 'Mutiroes e projetos de preservacao urbana e rural.',
+    description: 'Mutirões e projetos de preservação urbana e rural.',
     colorToken: '#166534',
     icon: Leaf,
   },
@@ -65,12 +65,12 @@ export const HOME_FAQ = [
     id: 'faq-2',
     title: 'Preciso pagar para participar?',
     content:
-      'A maioria dos eventos municipais e gratuita. Quando houver regras especificas, elas ficam visiveis na pagina do evento.',
+      'A maioria dos eventos municipais é gratuita. Quando houver regras específicas, elas ficam visíveis na página do evento.',
   },
   {
     id: 'faq-3',
     title: 'Posso acompanhar minhas inscricoes?',
-    content: 'Sim. Em Minhas Inscricoes voce consulta status, historico e QR Code para check-in.',
+    content: 'Sim. Em Minhas Inscrições voce consulta status, historico e QR Code para check-in.',
   },
 ];
 
@@ -79,19 +79,19 @@ export const HOME_TIMELINE = [
     id: 'tl-1',
     dateLabel: 'Marco 2026',
     title: 'Mutirao Cidadao Integrado',
-    description: 'Atendimento social, orientacao juridica e servicos da prefeitura no mesmo local.',
+    description: 'Atendimento social, orientação jurídica e serviços da prefeitura no mesmo local.',
   },
   {
     id: 'tl-2',
     dateLabel: 'Abril 2026',
     title: 'Circuito Esportivo da Cidade',
     description:
-      'Calendario de corridas e atividades fisicas com apoio das secretarias municipais.',
+      'Calendário de corridas e atividades físicas com apoio das secretarias municipais.',
   },
   {
     id: 'tl-3',
     dateLabel: 'Maio 2026',
     title: 'Semana do Empreendedor Local',
-    description: 'Oficinas, mentorias e rodada de conexoes para o comercio de Bandeirantes.',
+    description: 'Oficinas, mentorias e rodadas de conexões para o comércio de Bandeirantes.',
   },
 ];

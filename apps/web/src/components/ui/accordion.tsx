@@ -25,7 +25,7 @@ export function Accordion({ items }: AccordionProps) {
         return (
           <article
             key={item.id}
-            className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white"
+            className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]"
           >
             <button
               type="button"
