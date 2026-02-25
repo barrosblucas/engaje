@@ -100,3 +100,33 @@ Permitir marcar, na criação/edição de programas, qual deve aparecer no bloco
 - `pnpm typecheck` ✅
 - `pnpm test` ✅
 - `pnpm build` ✅
+
+## Tarefa 04 — Remoção da seção de notícias da Home pública
+
+### Objetivo
+Remover completamente o bloco `Ultimas noticias` da Home pública, incluindo o conteúdo estático e a composição da seção no frontend.
+
+### Arquivos alterados (principais)
+- `apps/web/src/components/public/home/home-page.tsx`
+- `apps/web/src/components/public/home/home-data.ts`
+- `apps/web/src/components/public/home/home-news.tsx` (removido)
+- `apps/web/src/components/public/public-header.tsx`
+- `.context/docs/PROJECT_STATE.md`
+- `.context/docs/REPOMAP.md`
+
+### O que mudou
+- Removido o `HomeNews` da composição da Home pública (`HomePage`).
+- Excluído o componente `home-news.tsx`.
+- Removidos `HOME_NEWS` e tipos relacionados do `home-data.ts`.
+- Removido o item `Noticias` da navegação rápida mobile para evitar link quebrado para `#noticias`.
+- Atualizada a documentação viva para refletir que a Home pública não possui mais o bloco de notícias.
+
+### Impacto
+- A Home pública deixa de renderizar a seção com `Ultimas noticias`, cards de notícias e CTA `Todas as noticias`.
+- Sem impacto em contratos (`packages/contracts`) e sem alterações de API.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅

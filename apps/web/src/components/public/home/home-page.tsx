@@ -8,7 +8,6 @@ import { HomeEngagement } from './home-engagement';
 import { HomeFeaturedEvents } from './home-featured-events';
 import { HomeHero } from './home-hero';
 import { HomeHighlightBanner } from './home-highlight-banner';
-import { HomeNews } from './home-news';
 import { HomeStats } from './home-stats';
 import type { HomePageStats } from './home-types';
 import { countEventsThisWeek } from './home-utils';
@@ -49,9 +48,6 @@ function HomePageContent({ events, activeProgram, stats }: HomePageProps) {
 
       {/* Bloco de indicadores com contadores animados */}
       <HomeStats stats={stats} />
-
-      {/* Noticias recentes */}
-      <HomeNews />
 
       {/* Preview do sistema de componentes e fluxos */}
       <HomeEngagement modalOpen={modalOpen} onCloseModal={() => setModalOpen(false)} />

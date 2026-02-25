@@ -9,14 +9,6 @@ interface HomeCategory {
   icon: ComponentType<{ className?: string }>;
 }
 
-interface HomeNews {
-  id: string;
-  category: string;
-  title: string;
-  excerpt: string;
-  dateLabel: string;
-}
-
 export const HOME_CATEGORIES: HomeCategory[] = [
   {
     id: 'saude',
@@ -59,31 +51,6 @@ export const HOME_CATEGORIES: HomeCategory[] = [
     description: 'Mutiroes e projetos de preservacao urbana e rural.',
     colorToken: '#166534',
     icon: Leaf,
-  },
-];
-
-export const HOME_NEWS: HomeNews[] = [
-  {
-    id: 'news-1',
-    category: 'Saude',
-    title: 'Caravana da Saude amplia atendimentos para zona rural',
-    excerpt:
-      'Novas equipes e horarios estendidos para ampliar acesso aos servicos basicos de saude.',
-    dateLabel: '24 fev 2026',
-  },
-  {
-    id: 'news-2',
-    category: 'Cultura',
-    title: 'Festa do Clube do Laco confirma programacao oficial',
-    excerpt: 'Evento tera espaco familiar, shows regionais e inscricoes simplificadas pelo Engaje.',
-    dateLabel: '21 fev 2026',
-  },
-  {
-    id: 'news-3',
-    category: 'Empreendedorismo',
-    title: 'Feira do Empreendedor abre 180 vagas para expositores',
-    excerpt: 'MEIs e pequenos negocios locais podem se credenciar diretamente na plataforma.',
-    dateLabel: '19 fev 2026',
   },
 ];
 

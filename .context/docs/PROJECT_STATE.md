@@ -64,7 +64,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 
 | Rota | Descricao | Status |
 | :--- | :--- | :--- |
-| `/public` | Home institucional com busca, categorias, destaques e noticias | Ativo |
+| `/public` | Home institucional com busca, categorias, destaques e bloco `Programa ativo` | Ativo |
 | `/public/eventos` | Agenda municipal com filtros e listagem de eventos | Ativo |
 | `/public/eventos/[slug]` | Detalhe publico do evento + CTA para inscricao autenticada + CTA de presenca | Ativo |
 | `/public/programas` | Listagem publica de programas via API | Ativo |

@@ -3,7 +3,7 @@
 import { ThemeToggle } from '@/components/public/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { CalendarDays, FileText, Home, Newspaper } from 'lucide-react';
+import { CalendarDays, FileText, Home } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -19,14 +19,9 @@ const MOBILE_NAV = [
   { href: '/public', label: 'Home', icon: Home },
   { href: '/public/eventos', label: 'Eventos', icon: CalendarDays },
   { href: '/login', label: 'Inscricoes', icon: FileText },
-  { href: '/public#noticias', label: 'Noticias', icon: Newspaper },
 ] as const;
 
 function isActive(pathname: string, href: string) {
-  if (href.includes('#')) {
-    return pathname === href.replace('#noticias', '');
-  }
-
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
