@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "pnpm -w db:generate",
     "build": "next build",
     "dev": "NODE_OPTIONS='--max-old-space-size=1536 --dns-result-order=ipv4first' next dev -H 0.0.0.0 -p 3000",
     "start": "next start",

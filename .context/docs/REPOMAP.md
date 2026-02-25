@@ -64,7 +64,8 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/lib/cn.ts` — Helper para composicao de classes CSS.
 - `src/components/public/home/home-utils.spec.ts` — Testes Vitest dos utilitarios da Home.
 - `src/lib/rich-text.spec.ts` — Testes Vitest de sanitizacao/normalizacao de HTML rico e URLs de imagem.
-- `src/shared/api-client.ts` — Cliente HTTP com `credentials: "include"` e fallback dinamico para host local atual (`window.location.hostname`) quando `NEXT_PUBLIC_API_URL` nao estiver definido.
+- `src/shared/api-client.ts` — Cliente HTTP com `credentials: "include"` e resolvedor de origem da API: prioriza `NEXT_PUBLIC_API_URL`; em `development` usa fallback `hostname:3001`; em `production` usa `window.location.origin`.
+- `src/shared/api-client.spec.ts` — Testes Vitest do resolvedor de origem da API (prioridade de env, fallback dev LAN e fallback same-origin em producao).
 - `src/shared/hooks/use-admin.ts` — Hooks admin consumindo `/admin/events*` e `/admin/programs*`, incluindo mutacao para alternar programa ativo na Home.
 - `src/shared/hooks/use-events.ts` — Hooks publicos/autenticados para eventos, programas, inscricoes (lista, detalhe, criacao, cancelamento) e attendance intents.
 - `src/shared/dynamic-form/*` — Utilitarios de serializacao/deserializacao e regras de modo para o builder.

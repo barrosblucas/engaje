@@ -5,16 +5,36 @@
  */
 
 const DEFAULT_API_URL = 'http://localhost:3001';
+type ApiClientEnv = Record<string, string | undefined>;
+type BrowserLocation = Pick<Location, 'hostname' | 'origin' | 'protocol'>;
 
-const resolveApiUrl = (): string => {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+function getRuntimeEnv(): ApiClientEnv {
+  return {
+    NODE_ENV: process.env.NODE_ENV,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  };
+}
 
-  if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}:3001`;
+function getBrowserLocation(): BrowserLocation | undefined {
+  if (typeof window === 'undefined') return undefined;
+  return window.location;
+}
+
+export function resolveApiUrl(
+  env: ApiClientEnv = getRuntimeEnv(),
+  browserLocation: BrowserLocation | undefined = getBrowserLocation(),
+): string {
+  const configuredApiUrl = env.NEXT_PUBLIC_API_URL?.trim();
+  if (configuredApiUrl) return configuredApiUrl;
+
+  if (!browserLocation) return DEFAULT_API_URL;
+
+  if (env.NODE_ENV === 'development') {
+    return `${browserLocation.protocol}//${browserLocation.hostname}:3001`;
   }
 
-  return DEFAULT_API_URL;
-};
+  return browserLocation.origin;
+}
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;

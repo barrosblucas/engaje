@@ -454,3 +454,84 @@ Atualizar os links sociais do rodape publico com os enderecos oficiais da prefei
 - `pnpm typecheck` ✅
 - `pnpm test` ✅
 - `pnpm build` ✅
+
+## Tarefa 16 — Correção de fallback da API no login em produção
+
+### Objetivo
+Evitar timeout no login quando `NEXT_PUBLIC_API_URL` não estiver disponível no build do frontend, removendo o fallback que forçava chamadas para `:3001` no domínio público.
+
+### Arquivos alterados (principais)
+- `apps/web/src/shared/api-client.ts`
+- `apps/web/src/shared/api-client.spec.ts`
+- `.context/docs/REPOMAP.md`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- Refatorado o resolvedor de origem da API no `api-client` para função explícita e testável (`resolveApiUrl`).
+- Regra de fallback ajustada:
+  - prioriza `NEXT_PUBLIC_API_URL` (com `trim` defensivo);
+  - em `development`, mantém fallback LAN `protocol//hostname:3001`;
+  - em `production`, usa `window.location.origin` para evitar chamadas a portas não expostas.
+- Adicionada suíte de testes unitários cobrindo prioridade de env e fallbacks por ambiente.
+
+### Impacto
+- Fluxo de login deixa de tentar `https://<dominio>:3001/v1/auth/login` em produção quando a env pública não foi injetada.
+- Reduz incidência de `net::ERR_CONNECTION_TIMED_OUT` no POST de autenticação em ambientes com proxy/reverse proxy na mesma origem.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
+## Tarefa 17 — Ajuste de ambiente para deploy com API em subdominio (Opcao 1)
+
+### Objetivo
+Alinhar o ambiente para operacao com dois hosts em producao: frontend em `engaje...` e API em `apiengaje...`, evitando fallback incorreto para a origem do frontend.
+
+### Arquivos alterados (principais)
+- `.env`
+- `.env.example`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- Corrigidos typos de dominio no `.env`:
+  - `APP_URL`, `APP_URLS`, `NEXT_PUBLIC_APP_URL` -> `https://engaje.bandeirantesms.app.br`
+  - `API_URL`, `NEXT_PUBLIC_API_URL`, `GOOGLE_CALLBACK_URL` -> `https://apiengaje.bandeirantesms.app.br`
+- Documentada no `.env.example` a configuracao de producao da Opcao 1 (`NEXT_PUBLIC_API_URL` apontando para subdominio dedicado da API).
+
+### Impacto
+- O build do frontend passa a apontar corretamente para a API dedicada (`apiengaje...`) quando as envs sao aplicadas no deploy.
+- Reduz risco de chamadas para `https://engaje.../v1/*` em ambientes sem proxy same-origin.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
+
+## Tarefa 18 — Correção de injeção de `NEXT_PUBLIC_API_URL` no bundle client
+
+### Objetivo
+Garantir que o frontend em produção use o subdomínio da API (Opcao 1) ao montar chamadas autenticadas, evitando fallback indevido para `https://engaje.../v1/*`.
+
+### Arquivos alterados (principais)
+- `apps/web/src/shared/api-client.ts`
+- `.context/docs/changelog/CHANGELOG_2026_02_25.md`
+
+### O que mudou
+- Ajustado o resolvedor de origem da API para ler `process.env.NEXT_PUBLIC_API_URL` via função runtime explícita (`getRuntimeEnv`) com acesso estático aos campos.
+- Mantido comportamento existente de fallback por ambiente:
+  - `development`: `protocol//hostname:3001`
+  - sem browser: `http://localhost:3001`
+  - produção sem env: `window.location.origin`
+
+### Impacto
+- O Next passa a injetar corretamente `NEXT_PUBLIC_API_URL` no bundle client.
+- Em produção com a env definida, o login deixa de bater em `https://engaje.../v1/auth/login` e passa a usar `https://apiengaje.../v1/auth/login`.
+
+### Validação executada
+- `pnpm lint` ✅
+- `pnpm typecheck` ✅
+- `pnpm test` ✅
+- `pnpm build` ✅
