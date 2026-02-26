@@ -184,7 +184,9 @@ export default function NovaInscricaoPage() {
           <Link href={`/public/eventos/${slug}`} className="btn-secondary">
             Voltar para evento
           </Link>
-          <h1 className="font-display text-3xl font-semibold text-slate-900 dark:text-white">{event.title}</h1>
+          <h1 className="font-display text-3xl font-semibold text-slate-900 dark:text-white">
+            {event.title}
+          </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {formatEventDate(event.startDate, event.endDate)} • {event.locationName}
           </p>

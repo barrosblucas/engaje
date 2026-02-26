@@ -129,7 +129,7 @@ function LoginPageContent() {
           </div>
 
           <div className="login-help-links">
-            <a href="/public/contato">Esqueci minha senha</a>
+            <a href="/esqueci-senha">Esqueci minha senha</a>
             <p>
               Não tem conta? <a href="/registro">Cadastre-se gratuitamente</a>
             </p>

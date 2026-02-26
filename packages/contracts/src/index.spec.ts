@@ -3,15 +3,20 @@ import {
   AdminEventDetailResponseSchema,
   AdminProgramSummarySchema,
   AdminUploadImageResponseSchema,
+  ChangePasswordInputSchema,
   CpfSchema,
   CreateAdminUserInputSchema,
   CreateEventInputSchema,
+  CreateManagedUserInputSchema,
   CreateProgramInputSchema,
   DynamicFormSchema,
   PublicActiveProgramResponseSchema,
   PublicEventsRequestSchema,
   PublicPlatformStatsResponseSchema,
   RegistrationModeSchema,
+  RequestPasswordResetInputSchema,
+  ResetPasswordInputSchema,
+  UpdateProfileInputSchema,
   UpdateProgramInputSchema,
   UserRegistrationDetailResponseSchema,
 } from './index';
@@ -61,6 +66,86 @@ describe('contracts', () => {
       });
 
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('UpdateProfileInputSchema', () => {
+    it('accepts name, email and nullable phone', () => {
+      const result = UpdateProfileInputSchema.safeParse({
+        name: 'Usuário Teste',
+        email: 'usuario@engaje.dev',
+        phone: null,
+      });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('ChangePasswordInputSchema', () => {
+    it('requires current password and new password', () => {
+      const result = ChangePasswordInputSchema.safeParse({
+        currentPassword: 'senha-atual',
+        newPassword: 'novaSenha123',
+      });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('Password reset schemas', () => {
+    it('validates request payload', () => {
+      const result = RequestPasswordResetInputSchema.safeParse({
+        email: 'reset@engaje.dev',
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('requires reset token and new password', () => {
+      const result = ResetPasswordInputSchema.safeParse({
+        token: 'token-seguro',
+        newPassword: 'novaSenha123',
+      });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('CreateManagedUserInputSchema', () => {
+    it('requires cpf for citizen role', () => {
+      const result = CreateManagedUserInputSchema.safeParse({
+        name: 'Usuário Comum',
+        email: 'comum@engaje.dev',
+        password: 'senhaForte123',
+        role: 'citizen',
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects cpf for admin role', () => {
+      const result = CreateManagedUserInputSchema.safeParse({
+        name: 'Admin',
+        email: 'admin2@engaje.dev',
+        cpf: '52998224725',
+        password: 'senhaForte123',
+        role: 'admin',
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it('accepts citizen with cpf', () => {
+      const result = CreateManagedUserInputSchema.safeParse({
+        name: 'Usuário Comum',
+        email: 'comum2@engaje.dev',
+        cpf: '52998224725',
+        phone: '67999999999',
+        password: 'senhaForte123',
+        role: 'citizen',
+      });
+
+      expect(result.success).toBe(true);
     });
   });
 

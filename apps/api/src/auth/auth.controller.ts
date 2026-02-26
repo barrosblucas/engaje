@@ -1,4 +1,11 @@
-import { CreateAdminUserInputSchema, RegisterInputSchema } from '@engaje/contracts';
+import {
+  ChangePasswordInputSchema,
+  CreateAdminUserInputSchema,
+  RegisterInputSchema,
+  RequestPasswordResetInputSchema,
+  ResetPasswordInputSchema,
+  UpdateProfileInputSchema,
+} from '@engaje/contracts';
 import {
   Body,
   Controller,
@@ -6,6 +13,7 @@ import {
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
+  Patch,
   Post,
   Req,
   Res,
@@ -29,18 +37,11 @@ export class AuthController {
   @Post('register')
   async register(@Body() body: unknown, @Req() req: AuthenticatedRequest) {
     const input = RegisterInputSchema.parse(body);
-    const user = await this.authService.registerCitizen(input);
-    await this.persistSession(req, user);
+    const sessionUser = await this.authService.registerCitizen(input);
+    await this.persistSession(req, sessionUser);
+
     return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        cpf: user.cpf,
-        phone: null,
-        createdAt: new Date().toISOString(),
-      },
+      user: await this.authService.getUserProfileById(sessionUser.id),
     };
   }
 
@@ -53,15 +54,7 @@ export class AuthController {
     await this.persistSession(req, user);
 
     return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        cpf: user.cpf,
-        phone: null,
-        createdAt: new Date().toISOString(),
-      },
+      user: await this.authService.getUserProfileById(user.id),
     };
   }
 
@@ -73,20 +66,56 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(SessionAuthGuard)
-  me(@Req() req: AuthenticatedRequest) {
+  async me(@Req() req: AuthenticatedRequest) {
     const user = req.user;
     if (!user) throw new UnauthorizedException();
+
     return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        cpf: user.cpf,
-        phone: null,
-        createdAt: new Date().toISOString(),
-      },
+      user: await this.authService.getUserProfileById(user.id),
     };
+  }
+
+  @Patch('profile')
+  @UseGuards(SessionAuthGuard)
+  async updateProfile(@Body() body: unknown, @Req() req: AuthenticatedRequest) {
+    const user = req.user;
+    if (!user) throw new UnauthorizedException();
+
+    const input = UpdateProfileInputSchema.parse(body);
+    return {
+      user: await this.authService.updateProfile(user.id, input),
+    };
+  }
+
+  @Patch('password')
+  @UseGuards(SessionAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async changePassword(@Body() body: unknown, @Req() req: AuthenticatedRequest) {
+    const user = req.user;
+    if (!user) throw new UnauthorizedException();
+
+    const input = ChangePasswordInputSchema.parse(body);
+    await this.authService.changePassword(user.id, input);
+  }
+
+  @Post('password/forgot')
+  @HttpCode(HttpStatus.OK)
+  async requestPasswordReset(@Body() body: unknown) {
+    const input = RequestPasswordResetInputSchema.parse(body);
+    await this.authService.requestPasswordReset(input);
+
+    return {
+      message:
+        'Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha. O link expira em 2 horas.',
+      expiresInHours: this.authService.getPasswordResetExpirationHours(),
+    };
+  }
+
+  @Post('password/reset')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async resetPassword(@Body() body: unknown) {
+    const input = ResetPasswordInputSchema.parse(body);
+    await this.authService.resetPassword(input);
   }
 
   @Get('google')
@@ -105,22 +134,16 @@ export class AuthController {
   @Post('admin/users')
   @UseGuards(AdminGuard)
   async createAdminUser(@Body() body: unknown, @Req() req: AuthenticatedRequest) {
-    // Only super_admin can create admins
+    // Only super_admin can create admins through legacy endpoint.
     if (req.user?.role !== 'super_admin') {
       throw new UnauthorizedException('Apenas super_admin pode criar administradores');
     }
+
     const input = CreateAdminUserInputSchema.parse(body);
     const user = await this.authService.createAdminUser(input);
+
     return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        cpf: user.cpf,
-        phone: null,
-        createdAt: new Date().toISOString(),
-      },
+      user: await this.authService.getUserProfileById(user.id),
     };
   }
 

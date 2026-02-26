@@ -314,36 +314,79 @@ export default async function EventosPage({ searchParams }: PageProps) {
           <div className="relative mt-5 grid gap-4 md:grid-cols-3">
             <article className="group rounded-2xl border border-community-200 bg-community-50/70 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md dark:border-emerald-800/50 dark:bg-gradient-to-br dark:from-emerald-950/80 dark:to-emerald-900/20 dark:hover:border-emerald-500/50 dark:hover:shadow-[0_8px_30px_rgba(16,185,129,0.15)]">
               <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-community-100 text-community-700 dark:bg-emerald-900/50 dark:text-emerald-400">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <title>Ícone de saúde</title>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
                 </svg>
               </div>
-              <p className="font-semibold text-community-800 dark:text-emerald-300">Caravana da Saúde</p>
+              <p className="font-semibold text-community-800 dark:text-emerald-300">
+                Caravana da Saúde
+              </p>
               <p className="mt-1.5 text-sm leading-relaxed text-community-800/90 dark:text-emerald-100/70">
                 Atendimento itinerante com orientação, triagem e prevenção.
               </p>
             </article>
-            
+
             <article className="group rounded-2xl border border-accent-200 bg-accent-50/75 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md dark:border-amber-800/50 dark:bg-gradient-to-br dark:from-amber-950/80 dark:to-amber-900/20 dark:hover:border-amber-500/50 dark:hover:shadow-[0_8px_30px_rgba(245,158,11,0.15)]">
               <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent-100 text-accent-700 dark:bg-amber-900/50 dark:text-amber-400">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <title>Ícone de empreendedorismo</title>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
               </div>
-              <p className="font-semibold text-accent-800 dark:text-amber-300">Feira do Empreendedor</p>
+              <p className="font-semibold text-accent-800 dark:text-amber-300">
+                Feira do Empreendedor
+              </p>
               <p className="mt-1.5 text-sm leading-relaxed text-accent-800/90 dark:text-amber-100/70">
                 Capacitação e rede de apoio para pequenos negócios locais.
               </p>
             </article>
-            
+
             <article className="group rounded-2xl border border-brand-200 bg-brand-50/70 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md dark:border-violet-800/50 dark:bg-gradient-to-br dark:from-violet-950/80 dark:to-violet-900/20 dark:hover:border-violet-500/50 dark:hover:shadow-[0_8px_30px_rgba(139,92,246,0.15)]">
               <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 text-brand-700 dark:bg-violet-900/50 dark:text-violet-400">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <title>Ícone de esporte</title>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
-              <p className="font-semibold text-brand-800 dark:text-violet-300">Agenda Jovem Esporte</p>
+              <p className="font-semibold text-brand-800 dark:text-violet-300">
+                Agenda Jovem Esporte
+              </p>
               <p className="mt-1.5 text-sm leading-relaxed text-brand-800/90 dark:text-violet-100/70">
                 Modalidades e campeonatos com inscrição gratuita e inclusiva.
               </p>

@@ -276,6 +276,41 @@ export const MeResponseSchema = z.object({
 });
 export type MeResponse = z.infer<typeof MeResponseSchema>;
 
+export const UpdateProfileInputSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  phone: z.string().min(10).max(15).nullable().optional(),
+});
+export type UpdateProfileInput = z.infer<typeof UpdateProfileInputSchema>;
+
+export const UpdateProfileResponseSchema = z.object({
+  user: UserSchema,
+});
+export type UpdateProfileResponse = z.infer<typeof UpdateProfileResponseSchema>;
+
+export const ChangePasswordInputSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6),
+});
+export type ChangePasswordInput = z.infer<typeof ChangePasswordInputSchema>;
+
+export const RequestPasswordResetInputSchema = z.object({
+  email: z.string().email(),
+});
+export type RequestPasswordResetInput = z.infer<typeof RequestPasswordResetInputSchema>;
+
+export const RequestPasswordResetResponseSchema = z.object({
+  message: z.string(),
+  expiresInHours: z.number().int().positive(),
+});
+export type RequestPasswordResetResponse = z.infer<typeof RequestPasswordResetResponseSchema>;
+
+export const ResetPasswordInputSchema = z.object({
+  token: z.string().min(1),
+  newPassword: z.string().min(6),
+});
+export type ResetPasswordInput = z.infer<typeof ResetPasswordInputSchema>;
+
 export const CreateAdminUserInputSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
@@ -283,6 +318,34 @@ export const CreateAdminUserInputSchema = z.object({
   role: z.enum(['admin', 'super_admin']),
 });
 export type CreateAdminUserInput = z.infer<typeof CreateAdminUserInputSchema>;
+
+export const CreateManagedUserInputSchema = z
+  .object({
+    name: z.string().min(2),
+    email: z.string().email(),
+    cpf: CpfSchema.optional(),
+    phone: z.string().min(10).max(15).optional(),
+    password: z.string().min(8),
+    role: z.enum(['admin', 'citizen']),
+  })
+  .superRefine((input, ctx) => {
+    if (input.role === 'citizen' && !input.cpf) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['cpf'],
+        message: 'CPF é obrigatório para usuário comum',
+      });
+    }
+
+    if (input.role === 'admin' && input.cpf) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['cpf'],
+        message: 'CPF não deve ser informado para administrador',
+      });
+    }
+  });
+export type CreateManagedUserInput = z.infer<typeof CreateManagedUserInputSchema>;
 
 // ─── Event ────────────────────────────────────────────────────────────────────
 

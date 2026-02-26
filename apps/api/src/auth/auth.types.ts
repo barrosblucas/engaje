@@ -7,4 +7,5 @@ export interface UserSession {
   name: string;
   role: UserRole;
   cpf: string | null;
+  phone: string | null;
 }

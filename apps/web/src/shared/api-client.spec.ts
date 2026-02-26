@@ -11,7 +11,7 @@ describe('resolveApiUrl', () => {
     expect(result).toBe('https://api.engaje.app.br');
   });
 
-  it('uses host:3001 fallback in development browser context', () => {
+  it('uses host:3001 fallback in development browser context for local/LAN hosts', () => {
     const result = resolveApiUrl(
       {
         NODE_ENV: 'development',
@@ -24,6 +24,21 @@ describe('resolveApiUrl', () => {
     );
 
     expect(result).toBe('http://192.168.1.20:3001');
+  });
+
+  it('uses current origin fallback in development browser context for public hosts', () => {
+    const result = resolveApiUrl(
+      {
+        NODE_ENV: 'development',
+      },
+      {
+        hostname: 'engaje.bandeirantesms.app.br',
+        origin: 'https://engaje.bandeirantesms.app.br',
+        protocol: 'https:',
+      },
+    );
+
+    expect(result).toBe('https://engaje.bandeirantesms.app.br');
   });
 
   it('uses current origin fallback in production browser context', () => {

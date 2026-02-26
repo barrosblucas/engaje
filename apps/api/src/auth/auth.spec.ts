@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { type INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
@@ -38,11 +39,17 @@ describe('Auth (integration)', () => {
     await prisma.registration.deleteMany({
       where: { user: { email: { contains: testEmailPattern } } },
     });
+    await prisma.passwordResetToken.deleteMany({
+      where: { user: { email: { contains: testEmailPattern } } },
+    });
     await prisma.user.deleteMany({ where: { email: { contains: testEmailPattern } } });
   });
 
   afterAll(async () => {
     await prisma.registration.deleteMany({
+      where: { user: { email: { contains: testEmailPattern } } },
+    });
+    await prisma.passwordResetToken.deleteMany({
       where: { user: { email: { contains: testEmailPattern } } },
     });
     await prisma.user.deleteMany({ where: { email: { contains: testEmailPattern } } });
@@ -149,6 +156,174 @@ describe('Auth (integration)', () => {
   describe('POST /v1/auth/logout', () => {
     it('encerra sessão', async () => {
       await request(app.getHttpServer()).post('/v1/auth/logout').expect(204);
+    });
+  });
+
+  describe('PATCH /v1/auth/profile', () => {
+    const user = {
+      name: 'Profile Test User',
+      cpf: '15350946056',
+      email: 'test-auth-profile@example.com',
+      phone: '67999998888',
+      password: 'senha123',
+    };
+
+    beforeAll(async () => {
+      await request(app.getHttpServer()).post('/v1/auth/register').send(user);
+    });
+
+    it('atualiza nome, email e telefone mantendo cpf', async () => {
+      const agent = request.agent(app.getHttpServer());
+      await agent.post('/v1/auth/login').send({ identifier: user.email, password: user.password });
+
+      const response = await agent
+        .patch('/v1/auth/profile')
+        .send({
+          name: 'Profile Updated',
+          email: 'test-auth-profile-updated@example.com',
+          phone: '67988887777',
+        })
+        .expect(200);
+
+      expect(response.body.user.name).toBe('Profile Updated');
+      expect(response.body.user.email).toBe('test-auth-profile-updated@example.com');
+      expect(response.body.user.phone).toBe('67988887777');
+      expect(response.body.user.cpf).toBe(user.cpf);
+    });
+  });
+
+  describe('PATCH /v1/auth/password', () => {
+    const user = {
+      name: 'Password Test User',
+      cpf: '39053344705',
+      email: 'test-auth-password@example.com',
+      phone: '67977776666',
+      password: 'senha123',
+    };
+
+    beforeAll(async () => {
+      await request(app.getHttpServer()).post('/v1/auth/register').send(user);
+    });
+
+    it('altera senha quando senha atual está correta', async () => {
+      const agent = request.agent(app.getHttpServer());
+      await agent.post('/v1/auth/login').send({ identifier: user.email, password: user.password });
+
+      await agent
+        .patch('/v1/auth/password')
+        .send({
+          currentPassword: user.password,
+          newPassword: 'novaSenha123',
+        })
+        .expect(204);
+
+      await request(app.getHttpServer())
+        .post('/v1/auth/login')
+        .send({ identifier: user.email, password: user.password })
+        .expect(401);
+
+      await request(app.getHttpServer())
+        .post('/v1/auth/login')
+        .send({ identifier: user.email, password: 'novaSenha123' })
+        .expect(200);
+    });
+
+    it('retorna 401 com senha atual inválida', async () => {
+      const agent = request.agent(app.getHttpServer());
+      await agent.post('/v1/auth/login').send({ identifier: user.email, password: 'novaSenha123' });
+
+      await agent
+        .patch('/v1/auth/password')
+        .send({
+          currentPassword: 'errada',
+          newPassword: 'novaSenha456',
+        })
+        .expect(401);
+    });
+  });
+
+  describe('POST /v1/auth/password/forgot and /v1/auth/password/reset', () => {
+    const user = {
+      name: 'Reset Test User',
+      cpf: '86288366757',
+      email: 'test-auth-reset@example.com',
+      phone: '67966665555',
+      password: 'senha123',
+    };
+
+    beforeAll(async () => {
+      await request(app.getHttpServer()).post('/v1/auth/register').send(user);
+    });
+
+    it('retorna resposta genérica para solicitação de reset', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/v1/auth/password/forgot')
+        .send({ email: user.email })
+        .expect(200);
+
+      expect(response.body.expiresInHours).toBe(2);
+      expect(response.body.message).toContain('expira em 2 horas');
+    });
+
+    it('rejeita token expirado', async () => {
+      const dbUser = await prisma.user.findUnique({
+        where: { email: user.email },
+        select: { id: true },
+      });
+      if (!dbUser) {
+        throw new Error('Usuário de teste não encontrado para token expirado');
+      }
+
+      const rawToken = 'token-expirado-auth-test';
+      const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+      await prisma.passwordResetToken.create({
+        data: {
+          userId: dbUser.id,
+          tokenHash,
+          expiresAt: new Date(Date.now() - 5 * 60_000),
+        },
+      });
+
+      await request(app.getHttpServer())
+        .post('/v1/auth/password/reset')
+        .send({ token: rawToken, newPassword: 'novaSenha789' })
+        .expect(400);
+    });
+
+    it('redefine senha com token válido e marca token como usado', async () => {
+      const dbUser = await prisma.user.findUnique({
+        where: { email: user.email },
+        select: { id: true },
+      });
+      if (!dbUser) {
+        throw new Error('Usuário de teste não encontrado para token válido');
+      }
+
+      const rawToken = 'token-valido-auth-test';
+      const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+      await prisma.passwordResetToken.create({
+        data: {
+          userId: dbUser.id,
+          tokenHash,
+          expiresAt: new Date(Date.now() + 2 * 60 * 60_000),
+        },
+      });
+
+      await request(app.getHttpServer())
+        .post('/v1/auth/password/reset')
+        .send({ token: rawToken, newPassword: 'senhaReset123' })
+        .expect(204);
+
+      const consumedToken = await prisma.passwordResetToken.findUnique({
+        where: { tokenHash },
+        select: { usedAt: true },
+      });
+      expect(consumedToken?.usedAt).not.toBeNull();
+
+      await request(app.getHttpServer())
+        .post('/v1/auth/login')
+        .send({ identifier: user.email, password: 'senhaReset123' })
+        .expect(200);
     });
   });
 });

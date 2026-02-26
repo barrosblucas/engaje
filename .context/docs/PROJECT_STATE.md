@@ -32,13 +32,17 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 - Rotas em `apps/web/src/app/app/*` com `robots: noindex` e consumo client-side.
 - Inscricao dinamica autenticada por slug em `/app/inscricoes/nova/[slug]` (renderiza campos configurados no admin e envia `formData` para `/v1/registrations`).
 - Comprovante da inscricao em `/app/inscricoes/[id]` com protocolo, dados do evento e respostas preenchidas no formulario.
+- Perfil do usuario em `/app/perfil` com alteracao de nome, e-mail, celular e senha (CPF apenas leitura).
 - Admin:
   - eventos em fluxo multi-etapas com builder dinamico (`/app/admin/eventos/[id]`),
-  - gestao de programas (`/app/admin/programas` e `/app/admin/programas/[id]`).
+  - gestao de programas (`/app/admin/programas` e `/app/admin/programas/[id]`),
+  - criacao de usuarios em `/app/admin/usuarios` com funcoes `Administrador` e `Comum`.
 
 ### API (NestJS)
 - Endpoints publicos `GET /v1/public/events*`, `GET /v1/public/programs*` e `GET /v1/public/platform-stats` (incluindo `GET /v1/public/programs/active` para o destaque da Home e painel de engajamento).
 - Endpoints autenticados para auth, admin de eventos/programas, inscricoes e intencao de presenca.
+- Auth ampliado com perfil (`PATCH /v1/auth/profile`), troca de senha autenticada (`PATCH /v1/auth/password`) e recuperacao de senha por token com expiracao de 2h (`POST /v1/auth/password/forgot` e `POST /v1/auth/password/reset`).
+- Admin ampliado com criacao de usuarios gerenciados em `POST /v1/admin/users`.
 
 ## Rotas API Ativas
 
@@ -51,6 +55,10 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 | `GET` | `/v1/public/programs/:slug` | Detalhe publico de programa | Ativo |
 | `GET` | `/v1/public/platform-stats` | Contadores publicos agregados da plataforma para a Home | Ativo |
 | `POST` | `/v1/auth/login` | Login de usuario | Ativo |
+| `PATCH` | `/v1/auth/profile` | Atualiza nome/e-mail/celular do usuario autenticado (CPF imutavel) | Ativo |
+| `PATCH` | `/v1/auth/password` | Altera senha do usuario autenticado exigindo senha atual | Ativo |
+| `POST` | `/v1/auth/password/forgot` | Solicita recuperacao de senha e dispara e-mail com link de 2 horas | Ativo |
+| `POST` | `/v1/auth/password/reset` | Redefine senha por token valido de recuperacao | Ativo |
 | `POST` | `/v1/registrations` | Criacao de inscricao autenticada com `formData` dinamico | Ativo |
 | `GET` | `/v1/registrations/:id` | Detalhe da inscricao autenticada com comprovante e respostas | Ativo |
 | `POST` | `/v1/events/:id/attendance-intents` | Confirma intencao de presenca do usuario logado | Ativo |
@@ -61,6 +69,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 | `GET` | `/v1/admin/programs` | Lista programas no painel admin | Ativo |
 | `GET` | `/v1/admin/programs/:id` | Detalhe de programa para edicao | Ativo |
 | `PATCH` | `/v1/admin/programs/:id` | Atualiza programa no painel admin | Ativo |
+| `POST` | `/v1/admin/users` | Cria usuario gerenciado (`admin` ou `citizen`) conforme permissao do ator | Ativo |
 
 ## Rotas Web Publicas Ativas
 
@@ -72,10 +81,13 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 | `/public/programas` | Listagem publica de programas via API | Ativo |
 | `/public/programas/[slug]` | Detalhe publico de programa com modo inscricao/informativo | Ativo |
 | `/public/contato` | Canais de contato e FAQ | Ativo |
+| `/esqueci-senha` | Solicitação pública de recuperação de senha (link expira em 2h) | Ativo |
+| `/redefinir-senha` | Redefinição pública de senha via token | Ativo |
 
 ## Estrutura do Banco de Dados
 ### PostgreSQL (unico)
 - `users`, `events`, `registrations`, `programs`, `program_registrations` e `event_attendance_intents`.
+- `password_reset_tokens` para fluxo de recuperacao de senha com token de uso unico e expiracao de 2h.
 - `events` e `programs` com `registration_mode`, `external_cta_*` e `dynamic_form_schema`.
 - `programs` com flag `is_highlighted_on_home` para controlar o `Programa ativo` da Home (somente programas `published`).
 - `registrations` com `form_data` (JSON) para respostas do builder dinamico.
@@ -108,6 +120,10 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 - [x] Novo endpoint publico `GET /v1/public/platform-stats` consumido pela Home para renderizar `Engajamento da cidade` com dados reais e sem o indicador `Municipios parceiros`.
 - [x] Home publica ajustada para buscar stats sem cache (`no-store`) e resolver origem da API com fallback `INTERNAL_API_URL` -> `NEXT_PUBLIC_API_URL` -> `localhost`, evitando `Inscricoes confirmadas` zerado por cache/origem incorreta.
 - [x] Padronização do resolvedor de origem da API (`resolvePublicApiBase`) em todas as rotas públicas SSR de eventos/programas, mantendo cache SEO (`revalidate`) e eliminando divergência de origem entre páginas.
+- [x] Nova área de perfil autenticado (`/app/perfil`) para todos os papéis com atualização de nome/e-mail/celular e troca de senha com validação da senha atual.
+- [x] Novo fluxo completo de recuperação de senha com endpoint de solicitação, envio de e-mail e token de redefinição com expiração de 2 horas.
+- [x] Nova gestão de usuários no admin (`/app/admin/usuarios` + `POST /v1/admin/users`) com papéis `Administrador`/`Comum` e regra de permissão por ator (`super_admin` vs `admin`).
+- [x] Novo modelo `password_reset_tokens` no Prisma com migration dedicada e índices para expiração/uso.
 
 ### Proximos passos sugeridos
 - [ ] Expandir o design system para rotas `/public/eventos` e `/public/eventos/[slug]`.

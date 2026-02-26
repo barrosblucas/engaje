@@ -8,6 +8,27 @@ const DEFAULT_API_URL = 'http://localhost:3001';
 type ApiClientEnv = Record<string, string | undefined>;
 type BrowserLocation = Pick<Location, 'hostname' | 'origin' | 'protocol'>;
 
+function isLocalApiHost(hostname: string): boolean {
+  const normalizedHostname = hostname.trim().toLowerCase();
+  if (
+    normalizedHostname === 'localhost' ||
+    normalizedHostname === '127.0.0.1' ||
+    normalizedHostname === '::1'
+  ) {
+    return true;
+  }
+
+  if (
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(normalizedHostname) ||
+    /^192\.168\.\d{1,3}\.\d{1,3}$/.test(normalizedHostname) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(normalizedHostname)
+  ) {
+    return true;
+  }
+
+  return normalizedHostname.endsWith('.local');
+}
+
 function getRuntimeEnv(): ApiClientEnv {
   return {
     NODE_ENV: process.env.NODE_ENV,
@@ -29,7 +50,7 @@ export function resolveApiUrl(
 
   if (!browserLocation) return DEFAULT_API_URL;
 
-  if (env.NODE_ENV === 'development') {
+  if (env.NODE_ENV === 'development' && isLocalApiHost(browserLocation.hostname)) {
     return `${browserLocation.protocol}//${browserLocation.hostname}:3001`;
   }
 

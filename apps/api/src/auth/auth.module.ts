@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
+import { AuthMailService } from './auth-mail.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleStrategy } from './google.strategy';
@@ -8,7 +9,7 @@ import { SessionSerializer } from './session.serializer';
 
 @Module({
   imports: [PassportModule.register({ session: true })],
-  providers: [AuthService, LocalStrategy, GoogleStrategy, SessionSerializer],
+  providers: [AuthService, AuthMailService, LocalStrategy, GoogleStrategy, SessionSerializer],
   controllers: [AuthController],
   exports: [AuthService],
 })

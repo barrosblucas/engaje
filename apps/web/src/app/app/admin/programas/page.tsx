@@ -54,6 +54,12 @@ export default function AdminProgramasPage() {
             <Link href="/app/admin/eventos" className="btn-secondary">
               Eventos
             </Link>
+            <Link href="/app/admin/usuarios" className="btn-secondary">
+              Usuários
+            </Link>
+            <Link href="/app/perfil" className="btn-secondary">
+              Perfil
+            </Link>
             <Link href="/app/admin/programas/novo" className="btn-primary">
               + Novo Programa
             </Link>

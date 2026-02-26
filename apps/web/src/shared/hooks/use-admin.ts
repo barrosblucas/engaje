@@ -7,10 +7,12 @@ import type {
   AdminRegistrationsResponse,
   AdminUploadImageResponse,
   CreateEventInput,
+  CreateManagedUserInput,
   CreateProgramInput,
   UpdateEventInput,
   UpdateEventStatusInput,
   UpdateProgramInput,
+  User,
 } from '@engaje/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -187,5 +189,12 @@ export function useExportRegistrationsCsv(eventId: string) {
       anchor.remove();
       URL.revokeObjectURL(url);
     },
+  });
+}
+
+export function useCreateManagedUser() {
+  return useMutation({
+    mutationFn: (data: CreateManagedUserInput) =>
+      apiClient.post<{ user: User }>('/admin/users', data),
   });
 }

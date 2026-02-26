@@ -62,6 +62,9 @@ export default function InscricoesPage() {
                 Ver eventos
               </a>
             )}
+            <a href="/app/perfil" className="btn-secondary">
+              Perfil
+            </a>
             <button type="button" onClick={handleLogout} className="btn-ghost">
               Sair
             </button>

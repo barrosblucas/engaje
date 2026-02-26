@@ -34,7 +34,8 @@ export function PublicFooter() {
           </div>
 
           <p className="max-w-sm text-sm leading-relaxed text-[var(--color-text-secondary)]">
-            Portal oficial para divulgação de eventos, programas e iniciativas de engajamento cívico.
+            Portal oficial para divulgação de eventos, programas e iniciativas de engajamento
+            cívico.
           </p>
 
           <div className="flex gap-2">

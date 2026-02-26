@@ -154,7 +154,9 @@ export default function InscricaoDetailPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
                 Data da inscrição
               </p>
-              <p className="text-sm text-[var(--color-text-secondary)]">{formatDateTime(registration.createdAt)}</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                {formatDateTime(registration.createdAt)}
+              </p>
             </div>
 
             {registration.cancelledAt ? (
@@ -162,14 +164,18 @@ export default function InscricaoDetailPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--color-text-muted)]">
                   Data de cancelamento
                 </p>
-                <p className="text-sm text-[var(--color-text-secondary)]">{formatDateTime(registration.cancelledAt)}</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  {formatDateTime(registration.cancelledAt)}
+                </p>
               </div>
             ) : null}
           </div>
         </section>
 
         <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-soft">
-          <h2 className="font-display text-xl font-semibold text-[var(--color-text-primary)]">Dados do evento</h2>
+          <h2 className="font-display text-xl font-semibold text-[var(--color-text-primary)]">
+            Dados do evento
+          </h2>
           <div className="mt-3 grid gap-3 text-sm text-[var(--color-text-secondary)] md:grid-cols-2">
             <p>
               <span className="font-semibold text-[var(--color-text-primary)]">Evento:</span>{' '}
@@ -198,8 +204,13 @@ export default function InscricaoDetailPage() {
           {mappedAnswers.length > 0 ? (
             <div className="mt-4 space-y-3">
               {mappedAnswers.map((answer) => (
-                <div key={answer.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-3">
-                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">{answer.label}</p>
+                <div
+                  key={answer.id}
+                  className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-3"
+                >
+                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                    {answer.label}
+                  </p>
                   <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{answer.value}</p>
                 </div>
               ))}
