@@ -103,6 +103,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 - [x] API em desenvolvimento agora escuta com host configurável (`HOST`, fallback `0.0.0.0`) para evitar `ERR_CONNECTION_REFUSED` em acesso via IP da rede local (`:3200`).
 - [x] Google OAuth deixou de bloquear bootstrap da API em dev/test sem credenciais; login Google não configurado agora responde `503` sem derrubar endpoints locais de autenticação.
 - [x] Scripts da API (`dev/start/test`) agora carregam automaticamente `../../.env`, evitando queda por `DATABASE_URL` ausente ao subir via `pnpm run dev` na raiz.
+- [x] Testes da API passaram a exigir banco de teste dedicado (`.env.test`) e teardown de eventos públicos não remove mais `registrations` globalmente.
 - [x] Portas padrão de desenvolvimento atualizadas para `WEB 3100` e `API 3200`, incluindo scripts, CORS local e fallbacks de URL no frontend.
 - [x] Tela admin de inscrições evoluída com enumeração cronológica dos candidatos, popup com respostas preenchidas ao clicar na linha e exportação completa em PDF.
 - [x] Detalhes publicos de eventos e programas agora possuem compartilhamento discreto por icones (WhatsApp, Instagram, Facebook e link) posicionado no card de inscricao/participacao para reforco de CTA.

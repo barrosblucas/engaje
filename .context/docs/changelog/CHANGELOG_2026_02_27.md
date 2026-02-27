@@ -100,3 +100,53 @@ Garantir que `pnpm run dev` na raiz do monorepo carregue `DATABASE_URL` e demais
 ### Impacto
 - A API deixa de cair no bootstrap por ausência de `DATABASE_URL` quando iniciada via Turborepo.
 - Erro `POST .../v1/auth/login net::ERR_CONNECTION_REFUSED` deixa de ocorrer por backend desligado nesse cenário.
+
+## Tarefa 05 — Proteção contra perda de dados em testes de integração da API
+
+### Objetivo
+Evitar deleção acidental de registros reais ao executar testes de integração em ambiente com banco compartilhado.
+
+### Arquivos alterados
+- `apps/api/src/public/events/public-events.spec.ts`
+- `apps/api/scripts/ensure-safe-test-db.cjs`
+- `apps/api/package.json`
+- `.env.example`
+
+### O que mudou
+- Removido `deleteMany({})` global em `registrations` no teardown do teste público de eventos.
+- Teardown passou a remover apenas inscrições vinculadas aos eventos criados pelo próprio teste (`event.createdById = adminUserId`).
+- Scripts `test`, `test:watch` e `test:cov` da API agora:
+  - carregam variáveis de `../../.env.test`;
+  - executam um guard que bloqueia testes se `DATABASE_URL` não parecer banco de teste.
+- `.env.example` recebeu orientação explícita para criação de `.env.test` com banco dedicado.
+
+### Impacto
+- Reduz drasticamente risco de perda de dados reais ao rodar `pnpm test`.
+- Mantém limpeza de dados de teste sem atingir registros de produção/desenvolvimento compartilhado.
+
+## Tarefa 06 — Recuperação emergencial de inscrições por ordem cronológica
+
+### Objetivo
+Restabelecer associação usuário-evento e ordenação cronológica de inscritos para seleção de brindes, mesmo sem backup prévio da tabela `registrations`.
+
+### Ações executadas
+- Snapshot de segurança criado antes da intervenção:
+  - `backups/registrations_emergency_20260227_010440.sql`
+  - `backups/full_emergency_20260227_010445.dump`
+- Para o evento `cmm169rtz0001l6zwic6vab6q` (`1ª Corrida Dia Internacional da Mulher`):
+  - Inseridas 71 inscrições recuperadas com base em `event_attendance_intents` ausentes em `registrations`.
+  - Campo `form_data` marcado com metadados de auditoria:
+    - `_recovered_from = attendance_intent`
+    - `_recovered_at = timestamp`
+- Exportadas listas ordenadas para conferência:
+  - `backups/recovery/corrida_ordenacao_completa.csv`
+  - `backups/recovery/corrida_primeiros_50.csv`
+  - `backups/recovery/corrida_registrations_ordenadas_pos_recuperacao.csv`
+  - `backups/recovery/corrida_primeiros_50_pos_recuperacao.csv`
+
+### Resultado
+- Total de inscrições do evento após recuperação: 77.
+- Top 50 cronológico disponível para decisão de brinde.
+
+### Observação importante
+- Sem backup histórico e com autovacuum já executado, a recuperação é inferida por intenção de presença (`attendance_intent`) e não reconstrói respostas originais de formulário dinâmico perdidas.

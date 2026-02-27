@@ -1,0 +1,7 @@
+id,event_id,user_id,protocol_number,status,created_at,cancelled_at,form_data
+cmm438cyq0002l6dmn4o6ymnz,cmm169rtz0001l6zwic6vab6q,cmm437uwd0000l6dmjtk7sayb,EVT-20260226-WL54G,confirmed,2026-02-26 23:21:55.107,,"{""tamanho_camiseta"": ""m""}"
+cmm43cqeu0008l6dm8pqyasbo,cmm169rtz0001l6zwic6vab6q,cmm3i85ac009ll6doc7m1csho,EVT-20260226-N821X,confirmed,2026-02-26 23:25:19.158,,"{""tamanho_camiseta"": ""m""}"
+cmm453lry000dl6dmp8b8191i,cmm169rtz0001l6zwic6vab6q,cmm452nkw000bl6dmft6kxua5,EVT-20260227-IPJKY,confirmed,2026-02-27 00:14:12.479,,"{""tamanho_camiseta"": ""m""}"
+cmm459u8v000gl6dmd3396qk2,cmm169rtz0001l6zwic6vab6q,cmm458gpn000el6dm44cej7q1,EVT-20260227-E63R2,confirmed,2026-02-27 00:19:03.391,,"{""tamanho_camiseta"": ""m""}"
+cmm467xff000ll6dmwf6ahtri,cmm169rtz0001l6zwic6vab6q,cmm466bef000jl6dmt37242m9,EVT-20260227-F26YT,confirmed,2026-02-27 00:45:33.819,,"{""tamanho_camiseta"": ""g""}"
+cmm46dws3000ol6dm7r0elzoa,cmm169rtz0001l6zwic6vab6q,cmm46d252000ml6dm51edl60a,EVT-20260227-NWFXR,confirmed,2026-02-27 00:50:12.916,,"{""tamanho_camiseta"": ""m""}"

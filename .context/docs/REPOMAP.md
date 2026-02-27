@@ -16,6 +16,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/main.ts` — Bootstrap Nest com prefixo global `v1`, `cookie-parser`, `express-session`, `passport`, logger `pino` e bind configuravel por `HOST` (fallback `0.0.0.0`) para acesso LAN no dev.
 - `src/config/app-origins.ts` — SSOT de origins do app para CORS/redirect (`APP_URLS` + fallback `APP_URL`).
 - `src/config/app-logger.ts` + `src/config/nest-logger.ts` + `src/config/http-logging.middleware.ts` — Logger estruturado com nivel dinâmico por ambiente e log HTTP com `request-id`.
+- `scripts/ensure-safe-test-db.cjs` — Guard para bloquear testes da API quando `DATABASE_URL` não aponta para banco de teste.
 - `src/public/events/*` — Endpoints publicos `GET /v1/public/events*`.
 - `src/public/programs/*` — Endpoints publicos `GET /v1/public/programs*` + `GET /v1/public/programs/active`.
 - `src/public/platform-stats/*` — Endpoint publico `GET /v1/public/platform-stats` com contadores agregados reais da plataforma (eventos publicados, inscricoes confirmadas e programas ativos).

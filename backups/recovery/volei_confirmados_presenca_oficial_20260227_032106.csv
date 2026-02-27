@@ -1,0 +1,6 @@
+posicao_fila,user_id,name,email,cpf,phone,user_created_at,intent_created_at_min,classificacao_final,regra_classificacao,tempo_referencia_posicao,criterio_posicao
+1,cmm2u5ypf0002l6dotnobmknd,Junior mulari ,junior.mulari@gmail.com,03821350164,67996422280,2026-02-26 02:20:20.596,2026-02-26 16:08:39.444,confirmado_presenca,tem_confirmacao_de_presenca,2026-02-26 16:08:39.444,intent_created_at
+2,cmm3oeg1x00dcl6doqx3eqk71,Geovanna Alves,martinesgeovanna43@gmail.com,08471670119,67998719867,2026-02-26 16:26:44.805,2026-02-26 16:27:07.570,confirmado_presenca,tem_confirmacao_de_presenca,2026-02-26 16:27:07.570,intent_created_at
+3,cmm3p8imy00dql6doebwbpsx3,Leonardo Nunes de Souza Silvério ,leonardodesouzasilverio@gmail.com,09044773127,67998814197,2026-02-26 16:50:07.834,2026-02-26 16:50:18.309,confirmado_presenca,tem_confirmacao_de_presenca,2026-02-26 16:50:18.309,intent_created_at
+4,cmm3kqpq900bzl6do56ddyfep,Isabelly Dias,diasisabelly563@gmail.com,05559613118,67996851572,2026-02-26 14:44:18.754,2026-02-26 17:37:52.911,confirmado_presenca,tem_confirmacao_de_presenca,2026-02-26 17:37:52.911,intent_created_at
+5,cmm3fisd20034l6doj666z6we,Marco Antonio Pitaluga Abrantes ,marcopabrantes71@gmail.com,05789479197,67998576128,2026-02-26 12:18:10.839,2026-02-26 18:08:24.162,confirmado_presenca,tem_confirmacao_de_presenca,2026-02-26 18:08:24.162,intent_created_at

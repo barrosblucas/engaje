@@ -74,7 +74,9 @@ describe('Public Events API (integration)', () => {
   });
 
   afterAll(async () => {
-    await prisma.registration.deleteMany({});
+    await prisma.registration.deleteMany({
+      where: { event: { createdById: adminUserId } },
+    });
     await prisma.event.deleteMany({ where: { createdById: adminUserId } });
     await prisma.user.deleteMany({ where: { email: { contains: 'test-pub' } } });
     await app.close();
