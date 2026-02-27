@@ -26,6 +26,7 @@ import { getPrimaryAppOrigin } from '../config/app-origins';
 import { AdminGuard } from './admin.guard';
 import { AuthService } from './auth.service';
 import type { UserSession } from './auth.types';
+import { GoogleAuthGuard } from './google-auth.guard';
 import { SessionAuthGuard } from './session-auth.guard';
 
 type AuthenticatedRequest = Request & { user?: UserSession };
@@ -119,13 +120,13 @@ export class AuthController {
   }
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   googleLogin() {
     // Handled by Passport
   }
 
   @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   googleCallback(@Req() _req: AuthenticatedRequest, @Res() res: Response) {
     const appUrl = getPrimaryAppOrigin(process.env);
     res.redirect(`${appUrl}/app/dashboard`);

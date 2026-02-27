@@ -4,7 +4,7 @@
  * SSOT de fetching para dados autenticados e públicos.
  */
 
-const DEFAULT_API_URL = 'http://localhost:3001';
+const DEFAULT_API_URL = 'http://localhost:3200';
 type ApiClientEnv = Record<string, string | undefined>;
 type BrowserLocation = Pick<Location, 'hostname' | 'origin' | 'protocol'>;
 
@@ -51,7 +51,7 @@ export function resolveApiUrl(
   if (!browserLocation) return DEFAULT_API_URL;
 
   if (env.NODE_ENV === 'development' && isLocalApiHost(browserLocation.hostname)) {
-    return `${browserLocation.protocol}//${browserLocation.hostname}:3001`;
+    return `${browserLocation.protocol}//${browserLocation.hostname}:3200`;
   }
 
   return browserLocation.origin;

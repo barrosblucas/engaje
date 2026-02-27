@@ -315,7 +315,7 @@ export class AdminEventsService {
       this.prisma.registration.count({ where }),
       this.prisma.registration.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'asc' },
         skip: (page - 1) * limit,
         take: limit,
         include: {
@@ -329,6 +329,7 @@ export class AdminEventsService {
         id: r.id,
         protocolNumber: r.protocolNumber,
         status: r.status,
+        formData: this.mapFormData(r.formData),
         createdAt: r.createdAt.toISOString(),
         cancelledAt: r.cancelledAt?.toISOString() ?? null,
         user: {
@@ -421,5 +422,12 @@ export class AdminEventsService {
     if (dynamicFormSchema === null) return null;
     const parsed = DynamicFormSchema.safeParse(dynamicFormSchema);
     return parsed.success ? parsed.data : null;
+  }
+
+  private mapFormData(formData: Prisma.JsonValue | null): Record<string, unknown> | null {
+    if (!formData || typeof formData !== 'object' || Array.isArray(formData)) {
+      return null;
+    }
+    return formData as Record<string, unknown>;
   }
 }

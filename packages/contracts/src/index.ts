@@ -776,6 +776,7 @@ export const AdminRegistrationSchema = z.object({
   id: z.string(),
   protocolNumber: z.string(),
   status: RegistrationStatusSchema,
+  formData: z.record(z.string(), z.unknown()).nullable(),
   createdAt: z.string().datetime(),
   cancelledAt: z.string().datetime().nullable(),
   user: z.object({

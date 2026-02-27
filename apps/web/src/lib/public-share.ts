@@ -1,4 +1,4 @@
-const DEFAULT_PUBLIC_WEB_BASE_URL = 'http://localhost:3000';
+const DEFAULT_PUBLIC_WEB_BASE_URL = 'http://localhost:3100';
 type PublicWebEnv = Record<string, string | undefined>;
 
 function normalizeBaseUrl(url: string): string {

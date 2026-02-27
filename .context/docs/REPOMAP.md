@@ -13,7 +13,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `.context/` — Wiki viva (docs, agents, changelog).
 
 ## apps/api (NestJS, prefixo `v1`)
-- `src/main.ts` — Bootstrap Nest com prefixo global `v1`, `cookie-parser`, `express-session`, `passport` e logger `pino`.
+- `src/main.ts` — Bootstrap Nest com prefixo global `v1`, `cookie-parser`, `express-session`, `passport`, logger `pino` e bind configuravel por `HOST` (fallback `0.0.0.0`) para acesso LAN no dev.
 - `src/config/app-origins.ts` — SSOT de origins do app para CORS/redirect (`APP_URLS` + fallback `APP_URL`).
 - `src/config/app-logger.ts` + `src/config/nest-logger.ts` + `src/config/http-logging.middleware.ts` — Logger estruturado com nivel dinâmico por ambiente e log HTTP com `request-id`.
 - `src/public/events/*` — Endpoints publicos `GET /v1/public/events*`.
@@ -23,9 +23,12 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
   - login/logout/sessao (`/v1/auth/login`, `/v1/auth/logout`, `/v1/auth/me`),
   - perfil autenticado (`PATCH /v1/auth/profile`),
   - troca de senha autenticada (`PATCH /v1/auth/password`),
-  - recuperacao de senha por e-mail com token (`POST /v1/auth/password/forgot`, `POST /v1/auth/password/reset`).
-- `src/admin/events/*` — Fluxo autenticado de gestao de eventos e export CSV.
+  - recuperacao de senha por e-mail com token (`POST /v1/auth/password/forgot`, `POST /v1/auth/password/reset`),
+  - OAuth Google com guard dedicado que retorna `503` quando credenciais Google nao estao configuradas no ambiente.
+- `src/admin/events/*` — Fluxo autenticado de gestao de eventos e exportacoes.
   - inclui listagem, detalhe (`GET /v1/admin/events/:id`), edicao, status, imagens e inscritos.
+  - `GET /v1/admin/events/:id/registrations` agora retorna `formData` das inscricoes e ordena candidatos por cadastro ascendente.
+  - `GET /v1/admin/events/:id/registrations/export` mantém exportacao em CSV.
 - `src/admin/programs/*` — Fluxo autenticado de gestao de programas (listagem, detalhe, criacao e edicao), incluindo controle de programa ativo da Home.
 - `src/admin/users/*` — Fluxo autenticado para criacao de usuarios gerenciados (`POST /v1/admin/users`) com permissao por papel (`admin` x `super_admin`).
 - `src/events/attendance-intents.*` — Endpoints autenticados para CTA de presenca:
@@ -52,11 +55,13 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/app/public/programas/[slug]/page.tsx` — Detalhe publico de programa com modo inscricao/informativo.
 - `src/app/public/contato/page.tsx` — Pagina publica de contato institucional e FAQ.
 - `src/app/app/admin/eventos/[id]/page.tsx` — Formulario de evento em etapas com builder dinamico + preview.
+- `src/app/app/admin/eventos/[id]/inscricoes/page.tsx` — Lista SPA de inscritos com enumeração cronológica, popup de detalhes ao clicar na linha e botao de exportacao em PDF.
 - `src/app/app/admin/programas/*` — Gestao SPA de programas com form builder dinamico e seletor de destaque para Home.
 - `src/app/app/admin/usuarios/page.tsx` — Tela SPA para criação de usuários com função `Administrador` ou `Comum`.
 - `src/components/dynamic-form/*` — Builder, renderizacao de campos dinamicos e preview.
 - `src/components/editor/rich-text-editor.tsx` — Editor rico baseado em Tiptap (Simple Editor) para campos de descricao publica com toolbar e upload de imagens.
 - `src/components/events/attendance-intent-button.tsx` — Botao `Vou ir com certeza` com contador persistente.
+- `src/components/admin/registration-details-modal.tsx` — Modal de detalhes da inscricao no admin com dados pessoais e respostas do formulario dinamico.
 - `src/components/public/home/*` — Secoes da Home publica (hero, categorias, eventos, banner, stats e engajamento), com CTA `Inscrever-se` dos cards apontando para `/app/inscricoes/nova/[slug]` e CTA `Quero participar` do programa ativo apontando para `/public/programas/[slug]` (sem modal).
 - `src/components/ui/*` — Design system base (`Button`, `Card`, `Badge`, `Input`, `Select`, `DatePicker`, `Modal`, `Toast`, `Skeleton`, `ProgressBar`, `Avatar`, `Chip`, `Accordion`, `Timeline`).
 - `src/components/public/theme-toggle.tsx` — Toggle manual de tema com fallback para `prefers-color-scheme`.
@@ -73,20 +78,24 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/lib/public-api-base.spec.ts` — Testes Vitest cobrindo prioridades e fallback do resolver de origem da API publica.
 - `src/lib/public-share.ts` — Helpers de URL absoluta publica e links de compartilhamento social.
 - `src/lib/public-share.spec.ts` — Testes Vitest para resolver de URL publica e geracao de links de compartilhamento.
+- `src/lib/registration-answers.ts` — Helpers para formatacao/mapeamento das respostas de inscricao e numeracao dos candidatos.
+- `src/lib/registration-answers.spec.ts` — Testes Vitest para mapeamento de respostas, ordenacao cronologica e calculo de enumeracao.
+- `src/lib/admin-registrations-pdf.ts` — Gerador de PDF client-side para inscricoes admin com bloco por candidato enumerado.
+- `src/lib/admin-registrations-pdf.spec.ts` — Teste Vitest do nome de arquivo gerado para exportacao PDF.
 - `src/lib/rich-text.ts` — Sanitizacao defensiva para render de HTML rico e normalizacao de URLs de upload (`/uploads/*`) quando houver origem de API configurada.
 - `src/lib/cn.ts` — Helper para composicao de classes CSS.
 - `src/components/public/home/home-utils.spec.ts` — Testes Vitest dos utilitarios da Home.
 - `src/lib/rich-text.spec.ts` — Testes Vitest de sanitizacao/normalizacao de HTML rico e URLs de imagem.
-- `src/shared/api-client.ts` — Cliente HTTP com `credentials: "include"` e resolvedor de origem da API: prioriza `NEXT_PUBLIC_API_URL`; em `development` usa `hostname:3001` apenas para hosts locais/LAN e para dominios publicos cai em same-origin (`window.location.origin`).
+- `src/shared/api-client.ts` — Cliente HTTP com `credentials: "include"` e resolvedor de origem da API: prioriza `NEXT_PUBLIC_API_URL`; em `development` usa `hostname:3200` apenas para hosts locais/LAN e para dominios publicos cai em same-origin (`window.location.origin`).
 - `src/shared/api-client.spec.ts` — Testes Vitest do resolvedor de origem da API (prioridade de env, fallback local/LAN em dev e fallback same-origin para dominios publicos).
-- `src/shared/hooks/use-admin.ts` — Hooks admin consumindo `/admin/events*`, `/admin/programs*` e `/admin/users`, incluindo mutacao para alternar programa ativo na Home.
+- `src/shared/hooks/use-admin.ts` — Hooks admin consumindo `/admin/events*`, `/admin/programs*` e `/admin/users`, incluindo mutacao para alternar programa ativo na Home e exportacao de inscricoes em PDF.
 - `src/shared/hooks/use-auth.ts` — Hooks de auth para sessão, perfil, troca de senha e recuperação de senha por token.
 - `src/shared/hooks/use-events.ts` — Hooks publicos/autenticados para eventos, programas, inscricoes (lista, detalhe, criacao, cancelamento) e attendance intents.
 - `src/shared/dynamic-form/*` — Utilitarios de serializacao/deserializacao e regras de modo para o builder.
 - `src/middleware.ts` — Protecao de `/app/*` redirecionando para `/login?redirect=...`.
 
 ## packages/contracts
-- `src/index.ts` — SSOT de schemas Zod dos dominios Auth, Events, Programs, Dynamic Form, Registrations e Attendance Intents (inclui `UpdateProfileInputSchema`, `ChangePasswordInputSchema`, `RequestPasswordReset*`, `ResetPasswordInputSchema`, `CreateManagedUserInputSchema`, `isHighlightedOnHome`, `PublicActiveProgramResponseSchema` e `PublicPlatformStatsResponseSchema`).
+- `src/index.ts` — SSOT de schemas Zod dos dominios Auth, Events, Programs, Dynamic Form, Registrations e Attendance Intents (inclui `UpdateProfileInputSchema`, `ChangePasswordInputSchema`, `RequestPasswordReset*`, `ResetPasswordInputSchema`, `CreateManagedUserInputSchema`, `isHighlightedOnHome`, `PublicActiveProgramResponseSchema`, `PublicPlatformStatsResponseSchema` e `formData` no contrato de inscricao admin).
 - `src/index.spec.ts` — Testes de contratos (CPF, defaults, registration mode, dynamic form, validacoes de CTA/schema, destaque de programa na Home e novos contratos de perfil/senha/usuario gerenciado).
 - `vitest.config.ts` — Config do Vitest priorizando fontes `.ts` em `src/`.
 
@@ -101,7 +110,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `migrations/20260226200000_add_password_reset_tokens` — Migration para fluxo de recuperação de senha (`password_reset_tokens` com hash, expiração e uso único).
 
 ## Testes de integracao relevantes
-- `apps/api/src/admin/events/admin-events.spec.ts` — Cobre `GET /v1/admin/events/:id` (sucesso, 404 e acesso negado para cidadao).
+- `apps/api/src/admin/events/admin-events.spec.ts` — Cobre `GET /v1/admin/events/:id` (sucesso, 404 e acesso negado para cidadao) e `GET /v1/admin/events/:id/registrations` (ordem cronologica, retorno de `formData` e acesso negado para cidadao).
 - `apps/api/src/admin/users/admin-users.spec.ts` — Cobre `POST /v1/admin/users` para criação de comum/admin e regras de permissão por papel.
 - `apps/api/src/auth/auth.spec.ts` — Cobre login/sessão e fluxos de perfil, troca de senha e recuperação de senha por token.
 - `apps/api/src/super-admin-plan.spec.ts` — Cobre fluxo integrado de eventos/programas, inscricao com `formData` e attendance intents.

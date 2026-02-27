@@ -35,6 +35,10 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 - Perfil do usuario em `/app/perfil` com alteracao de nome, e-mail, celular e senha (CPF apenas leitura).
 - Admin:
   - eventos em fluxo multi-etapas com builder dinamico (`/app/admin/eventos/[id]`),
+  - visualizacao de inscricoes do evento em `/app/admin/eventos/[id]/inscricoes` com:
+    - enumeracao de candidatos por ordem cronologica de cadastro,
+    - popup ao clicar na linha com dados pessoais + respostas do formulario,
+    - exportacao em PDF com todos os candidatos enumerados na ordem de inscricao,
   - gestao de programas (`/app/admin/programas` e `/app/admin/programas/[id]`),
   - criacao de usuarios em `/app/admin/usuarios` com funcoes `Administrador` e `Comum`.
 
@@ -65,6 +69,8 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 | `DELETE` | `/v1/events/:id/attendance-intents` | Remove intencao de presenca do usuario logado | Ativo |
 | `GET` | `/v1/events/:id/attendance-intents/me` | Estado de presenca do usuario + contador | Ativo |
 | `GET` | `/v1/admin/events/:id` | Detalhe de evento para edicao no painel admin | Ativo |
+| `GET` | `/v1/admin/events/:id/registrations` | Lista inscricoes do evento no admin com `formData` e ordem cronologica ascendente | Ativo |
+| `GET` | `/v1/admin/events/:id/registrations/export` | Exporta inscricoes do evento em CSV para o admin | Ativo |
 | `POST` | `/v1/admin/programs` | Cria programa no painel admin | Ativo |
 | `GET` | `/v1/admin/programs` | Lista programas no painel admin | Ativo |
 | `GET` | `/v1/admin/programs/:id` | Detalhe de programa para edicao | Ativo |
@@ -94,6 +100,11 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 
 ## Pendencias e Roadmap Tecnico
 ### Concluido recentemente (2026-02-25)
+- [x] API em desenvolvimento agora escuta com host configurável (`HOST`, fallback `0.0.0.0`) para evitar `ERR_CONNECTION_REFUSED` em acesso via IP da rede local (`:3200`).
+- [x] Google OAuth deixou de bloquear bootstrap da API em dev/test sem credenciais; login Google não configurado agora responde `503` sem derrubar endpoints locais de autenticação.
+- [x] Scripts da API (`dev/start/test`) agora carregam automaticamente `../../.env`, evitando queda por `DATABASE_URL` ausente ao subir via `pnpm run dev` na raiz.
+- [x] Portas padrão de desenvolvimento atualizadas para `WEB 3100` e `API 3200`, incluindo scripts, CORS local e fallbacks de URL no frontend.
+- [x] Tela admin de inscrições evoluída com enumeração cronológica dos candidatos, popup com respostas preenchidas ao clicar na linha e exportação completa em PDF.
 - [x] Detalhes publicos de eventos e programas agora possuem compartilhamento discreto por icones (WhatsApp, Instagram, Facebook e link) posicionado no card de inscricao/participacao para reforco de CTA.
 - [x] Rodape publico atualizado com links oficiais de Facebook/Instagram e atalho do site institucional no conjunto de icones sociais.
 - [x] Home publica: botao `Inscrever-se` dos cards agora navega para `/app/inscricoes/nova/[slug]` (sem popup), mantendo fluxo login -> redirect -> pagina de inscricao.

@@ -114,3 +114,53 @@ Evitar timeout no login quando o frontend em desenvolvimento roda com host públ
 ### Impacto
 - Corrige erro `net::ERR_CONNECTION_TIMED_OUT` no `POST /v1/auth/login` em dev quando a aplicação é acessada por domínio público.
 - Mantém compatibilidade com fluxo de desenvolvimento em LAN/local.
+
+## Tarefa 04 — Popup de inscrição admin/super admin, enumeração cronológica e exportação PDF
+
+### Objetivo
+Evoluir a visualização de inscrições do admin/super admin para:
+- abrir detalhes da inscrição ao clicar na linha do candidato,
+- exibir enumeração dos candidatos por ordem de cadastro,
+- permitir exportação em PDF com todos os candidatos enumerados e seus dados de inscrição.
+
+### Arquivos alterados
+- `packages/contracts/src/index.ts`
+- `packages/contracts/src/index.spec.ts`
+- `apps/api/src/admin/events/admin-events.service.ts`
+- `apps/api/src/admin/events/admin-events.spec.ts`
+- `apps/web/package.json`
+- `apps/web/src/shared/hooks/use-admin.ts`
+- `apps/web/src/app/app/admin/eventos/[id]/inscricoes/page.tsx`
+- `apps/web/src/components/admin/registration-details-modal.tsx`
+- `apps/web/src/lib/registration-answers.ts`
+- `apps/web/src/lib/registration-answers.spec.ts`
+- `apps/web/src/lib/admin-registrations-pdf.ts`
+- `apps/web/src/lib/admin-registrations-pdf.spec.ts`
+- `pnpm-lock.yaml`
+- `.context/docs/PROJECT_STATE.md`
+- `.context/docs/REPOMAP.md`
+
+### O que mudou
+- Contrato de inscrições admin (`AdminRegistrationSchema`) passou a incluir `formData` (`Record<string, unknown> | null`).
+- API admin de inscrições (`GET /v1/admin/events/:id/registrations`):
+  - agora retorna `formData`,
+  - agora ordena inscrições por `createdAt asc` (ordem cronológica de cadastro).
+- Página admin de inscrições (`/app/admin/eventos/[id]/inscricoes`):
+  - adicionada coluna de enumeração `#` por página com número absoluto,
+  - clique na linha abre modal com dados da inscrição e respostas do formulário,
+  - novo botão `Gerar PDF` ao lado de `Exportar CSV`.
+- Novo fluxo de exportação PDF no frontend:
+  - busca todas as páginas de inscrições (limit 200) antes de exportar,
+  - gera PDF client-side com `jsPDF`,
+  - inclui bloco por candidato (`Candidato 1, 2, 3...`) e informações preenchidas.
+- Novos utilitários/testes no web para:
+  - formatação e mapeamento de respostas dinâmicas,
+  - ordenação cronológica,
+  - cálculo da enumeração,
+  - nome de arquivo PDF.
+- Teste de integração da API admin atualizado para cobrir retorno de `formData`, ordenação ascendente e regra de acesso (403 para cidadão).
+
+### Impacto
+- Admin e super admin passam a auditar inscrições sem sair da listagem.
+- Enumeração fica consistente com a ordem real de cadastro.
+- Exportação PDF atende necessidade operacional com conteúdo completo da inscrição.

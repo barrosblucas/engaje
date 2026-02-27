@@ -58,11 +58,13 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const port = process.env.PORT ?? 3001;
-  await app.listen(port);
+  const port = Number(process.env.PORT ?? 3200);
+  const host = process.env.HOST?.trim() || '0.0.0.0';
+  await app.listen(port, host);
   logger.info(
     {
       port,
+      host,
       env: nodeEnv,
       logLevel: resolveLogLevel(process.env),
       allowedOrigins,

@@ -11,19 +11,19 @@ describe('resolveApiUrl', () => {
     expect(result).toBe('https://api.engaje.app.br');
   });
 
-  it('uses host:3001 fallback in development browser context for local/LAN hosts', () => {
+  it('uses host:3200 fallback in development browser context for local/LAN hosts', () => {
     const result = resolveApiUrl(
       {
         NODE_ENV: 'development',
       },
       {
         hostname: '192.168.1.20',
-        origin: 'http://192.168.1.20:3000',
+        origin: 'http://192.168.1.20:3100',
         protocol: 'http:',
       },
     );
 
-    expect(result).toBe('http://192.168.1.20:3001');
+    expect(result).toBe('http://192.168.1.20:3200');
   });
 
   it('uses current origin fallback in development browser context for public hosts', () => {
@@ -62,6 +62,6 @@ describe('resolveApiUrl', () => {
       NEXT_PUBLIC_API_URL: ' ',
     });
 
-    expect(result).toBe('http://localhost:3001');
+    expect(result).toBe('http://localhost:3200');
   });
 });

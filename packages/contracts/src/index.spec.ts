@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   AdminEventDetailResponseSchema,
   AdminProgramSummarySchema,
+  AdminRegistrationsResponseSchema,
   AdminUploadImageResponseSchema,
   ChangePasswordInputSchema,
   CpfSchema,
@@ -184,6 +185,41 @@ describe('contracts', () => {
         attendanceIntentCount: 0,
         images: [],
         createdAt: '2026-02-24T09:00:00.000Z',
+      });
+
+      expect(parsed.success).toBe(true);
+    });
+  });
+
+  describe('AdminRegistrationsResponseSchema', () => {
+    it('accepts admin registrations payload with dynamic form answers', () => {
+      const parsed = AdminRegistrationsResponseSchema.safeParse({
+        data: [
+          {
+            id: 'reg_1',
+            protocolNumber: 'EVT-20260224-00001',
+            status: 'confirmed',
+            formData: {
+              nome_completo: 'Maria da Silva',
+              aceite_termos: true,
+            },
+            createdAt: '2026-02-24T10:00:00.000Z',
+            cancelledAt: null,
+            user: {
+              id: 'usr_1',
+              name: 'Maria da Silva',
+              cpf: '12345678901',
+              email: 'maria@example.com',
+              phone: '67999999999',
+            },
+          },
+        ],
+        meta: {
+          page: 1,
+          limit: 50,
+          total: 1,
+          totalPages: 1,
+        },
       });
 
       expect(parsed.success).toBe(true);

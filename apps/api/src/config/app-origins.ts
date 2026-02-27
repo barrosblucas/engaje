@@ -9,8 +9,8 @@ type CorsOriginValidator = (
   callback: (error: Error | null, allow?: boolean) => void,
 ) => void;
 
-const DEFAULT_APP_ORIGIN = 'http://localhost:3000';
-const LOCAL_DEV_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+const DEFAULT_APP_ORIGIN = 'http://localhost:3100';
+const LOCAL_DEV_ORIGINS = ['http://localhost:3100', 'http://127.0.0.1:3100'];
 
 const isDefined = <T>(value: T | null): value is T => value !== null;
 

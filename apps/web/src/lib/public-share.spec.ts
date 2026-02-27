@@ -18,7 +18,7 @@ describe('public-share', () => {
   it('falls back to localhost when NEXT_PUBLIC_APP_URL is missing', () => {
     const result = resolvePublicWebBaseUrl({});
 
-    expect(result).toBe('http://localhost:3000');
+    expect(result).toBe('http://localhost:3100');
   });
 
   it('falls back to localhost when NEXT_PUBLIC_APP_URL is invalid', () => {
@@ -26,7 +26,7 @@ describe('public-share', () => {
       NEXT_PUBLIC_APP_URL: 'engaje.bandeirantesms.app.br',
     });
 
-    expect(result).toBe('http://localhost:3000');
+    expect(result).toBe('http://localhost:3100');
   });
 
   it('builds absolute public share url', () => {

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   description:
     'Portal oficial para divulgacao de eventos municipais, inscrições online e comunicacao de iniciativas da Prefeitura Municipal de Bandeirantes - MS.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3100'),
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

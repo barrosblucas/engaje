@@ -1,14 +1,17 @@
+import { generateRegistrationsPdf } from '@/lib/admin-registrations-pdf';
 import { API_URL, apiClient } from '@/shared/api-client';
 import type {
   AdminEventDetailResponse,
   AdminEventListResponse,
   AdminProgramDetailResponse,
   AdminProgramListResponse,
+  AdminRegistration,
   AdminRegistrationsResponse,
   AdminUploadImageResponse,
   CreateEventInput,
   CreateManagedUserInput,
   CreateProgramInput,
+  DynamicForm,
   UpdateEventInput,
   UpdateEventStatusInput,
   UpdateProgramInput,
@@ -155,9 +158,13 @@ export function useSetProgramHomeHighlight() {
 
 // ─── Admin Registrations ───────────────────────────────────────────────────────
 
-export function useAdminRegistrations(eventId: string, params: { page?: number; search?: string }) {
+export function useAdminRegistrations(
+  eventId: string,
+  params: { page?: number; limit?: number; search?: string },
+) {
   const queryString = new URLSearchParams();
   if (params.page) queryString.set('page', String(params.page));
+  if (params.limit) queryString.set('limit', String(params.limit));
   if (params.search) queryString.set('search', params.search);
 
   return useQuery<AdminRegistrationsResponse>({
@@ -188,6 +195,51 @@ export function useExportRegistrationsCsv(eventId: string) {
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(url);
+    },
+  });
+}
+
+interface ExportRegistrationsPdfInput {
+  eventTitle: string;
+  eventSlug?: string;
+  dynamicFormSchema?: DynamicForm | null;
+}
+
+async function fetchAllEventRegistrations(eventId: string): Promise<AdminRegistration[]> {
+  const pageSize = 200;
+  const firstPage = await apiClient.get<AdminRegistrationsResponse>(
+    `/admin/events/${eventId}/registrations?page=1&limit=${pageSize}`,
+  );
+
+  if (firstPage.meta.totalPages <= 1) {
+    return firstPage.data;
+  }
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.meta.totalPages - 1 }, (_, index) => index + 2).map((page) =>
+      apiClient.get<AdminRegistrationsResponse>(
+        `/admin/events/${eventId}/registrations?page=${page}&limit=${pageSize}`,
+      ),
+    ),
+  );
+
+  return [firstPage, ...remainingPages].flatMap((page) => page.data);
+}
+
+export function useExportRegistrationsPdf(eventId: string) {
+  return useMutation({
+    mutationFn: async ({
+      eventTitle,
+      eventSlug,
+      dynamicFormSchema,
+    }: ExportRegistrationsPdfInput) => {
+      const registrations = await fetchAllEventRegistrations(eventId);
+      await generateRegistrationsPdf({
+        registrations,
+        eventTitle,
+        eventSlug,
+        dynamicFormSchema,
+      });
     },
   });
 }

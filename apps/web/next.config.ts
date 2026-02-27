@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next';
 
-const DEFAULT_API_ORIGIN = 'http://localhost:3001';
+const DEFAULT_API_ORIGIN = 'http://localhost:3200';
 
 function resolveApiOrigin(): URL {
   const configuredUrl = process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_ORIGIN;

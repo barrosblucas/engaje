@@ -15,9 +15,12 @@ describe('Admin Events API (integration)', () => {
   let prisma: PrismaService;
   let adminId: string;
   let eventId: string;
+  let citizenId: string;
+  let citizenTwoId: string;
 
   const adminEmail = 'test-admin-events-admin@example.com';
   const citizenEmail = 'test-admin-events-citizen@example.com';
+  const citizenTwoEmail = 'test-admin-events-citizen-two@example.com';
   const password = 'senha12345';
   const eventSlug = 'evento-admin-test';
   const onePixelPngBuffer = Buffer.from(
@@ -52,7 +55,9 @@ describe('Admin Events API (integration)', () => {
     await prisma.registration.deleteMany({ where: { event: { slug: eventSlug } } });
     await prisma.eventImage.deleteMany({ where: { event: { slug: eventSlug } } });
     await prisma.event.deleteMany({ where: { slug: eventSlug } });
-    await prisma.user.deleteMany({ where: { email: { in: [adminEmail, citizenEmail] } } });
+    await prisma.user.deleteMany({
+      where: { email: { in: [adminEmail, citizenEmail, citizenTwoEmail] } },
+    });
 
     const passwordHash = await bcrypt.hash(password, 12);
 
@@ -66,7 +71,7 @@ describe('Admin Events API (integration)', () => {
     });
     adminId = admin.id;
 
-    await prisma.user.create({
+    const citizen = await prisma.user.create({
       data: {
         name: 'Citizen Events Test',
         email: citizenEmail,
@@ -75,6 +80,18 @@ describe('Admin Events API (integration)', () => {
         cpf: '01987654322',
       },
     });
+    citizenId = citizen.id;
+
+    const citizenTwo = await prisma.user.create({
+      data: {
+        name: 'Citizen Two Events Test',
+        email: citizenTwoEmail,
+        passwordHash,
+        role: 'citizen',
+        cpf: '01987654323',
+      },
+    });
+    citizenTwoId = citizenTwo.id;
 
     const event = await prisma.event.create({
       data: {
@@ -101,7 +118,9 @@ describe('Admin Events API (integration)', () => {
     await prisma.registration.deleteMany({ where: { event: { slug: eventSlug } } });
     await prisma.eventImage.deleteMany({ where: { event: { slug: eventSlug } } });
     await prisma.event.deleteMany({ where: { slug: eventSlug } });
-    await prisma.user.deleteMany({ where: { email: { in: [adminEmail, citizenEmail] } } });
+    await prisma.user.deleteMany({
+      where: { email: { in: [adminEmail, citizenEmail, citizenTwoEmail] } },
+    });
     await app.close();
   });
 
@@ -158,5 +177,51 @@ describe('Admin Events API (integration)', () => {
 
     expect(response.body.description).toContain('<strong>segura</strong>');
     expect(response.body.description).not.toContain('<script');
+  });
+
+  it('GET /v1/admin/events/:id/registrations retorna formData e ordena por cadastro ascendente', async () => {
+    await prisma.registration.deleteMany({ where: { eventId } });
+
+    await prisma.registration.create({
+      data: {
+        eventId,
+        userId: citizenId,
+        protocolNumber: 'EVT-ADMIN-TEST-00001',
+        status: 'confirmed',
+        formData: { bairro: 'Centro', aceita_termos: true },
+        createdAt: new Date('2026-02-20T10:00:00.000Z'),
+      },
+    });
+
+    await prisma.registration.create({
+      data: {
+        eventId,
+        userId: citizenTwoId,
+        protocolNumber: 'EVT-ADMIN-TEST-00002',
+        status: 'confirmed',
+        formData: { bairro: 'Vila Nova', aceita_termos: true },
+        createdAt: new Date('2026-02-20T11:00:00.000Z'),
+      },
+    });
+
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/v1/auth/login').send({ identifier: adminEmail, password }).expect(200);
+
+    const response = await agent
+      .get(`/v1/admin/events/${eventId}/registrations?page=1&limit=50`)
+      .expect(200);
+
+    expect(response.body.data).toHaveLength(2);
+    expect(response.body.data[0].user.id).toBe(citizenId);
+    expect(response.body.data[0].formData).toEqual({ bairro: 'Centro', aceita_termos: true });
+    expect(response.body.data[1].user.id).toBe(citizenTwoId);
+    expect(response.body.data[1].formData).toEqual({ bairro: 'Vila Nova', aceita_termos: true });
+  });
+
+  it('GET /v1/admin/events/:id/registrations retorna 403 para cidadao', async () => {
+    const agent = request.agent(app.getHttpServer());
+    await agent.post('/v1/auth/login').send({ identifier: citizenEmail, password }).expect(200);
+
+    await agent.get(`/v1/admin/events/${eventId}/registrations?page=1&limit=50`).expect(403);
   });
 });

@@ -1,4 +1,4 @@
-const DEFAULT_PUBLIC_API_BASE = 'http://localhost:3001';
+const DEFAULT_PUBLIC_API_BASE = 'http://localhost:3200';
 type PublicApiEnv = Record<string, string | undefined>;
 
 /**
