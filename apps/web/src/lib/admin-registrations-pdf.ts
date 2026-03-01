@@ -20,7 +20,10 @@ interface GenerateRegistrationsPdfInput {
   eventTitle: string;
   eventSlug?: string;
   dynamicFormSchema?: DynamicForm | null;
+  variant?: RegistrationsPdfVariant;
 }
+
+export type RegistrationsPdfVariant = 'with_answers' | 'without_answers';
 
 function sanitizeFileSegment(value: string): string {
   return value
@@ -31,8 +34,17 @@ function sanitizeFileSegment(value: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-export function buildRegistrationsPdfFileName(base: string, now = new Date()): string {
+function buildRegistrationsPdfBase(base: string, variant: RegistrationsPdfVariant): string {
   const safeBase = sanitizeFileSegment(base) || 'evento';
+  return variant === 'without_answers' ? `${safeBase}-sem-respostas` : safeBase;
+}
+
+export function buildRegistrationsPdfFileName(
+  base: string,
+  now = new Date(),
+  variant: RegistrationsPdfVariant = 'with_answers',
+): string {
+  const safeBase = buildRegistrationsPdfBase(base, variant);
   const date = now.toISOString().slice(0, 10);
   return `inscricoes-${safeBase}-${date}.pdf`;
 }
@@ -42,6 +54,7 @@ export async function generateRegistrationsPdf({
   eventTitle,
   eventSlug,
   dynamicFormSchema,
+  variant = 'with_answers',
 }: GenerateRegistrationsPdfInput): Promise<void> {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -95,15 +108,19 @@ export async function generateRegistrationsPdf({
     writeText(`Status: ${STATUS_LABELS[registration.status] ?? registration.status}`);
     writeText(`Data da inscrição: ${formatAdminRegistrationDateTime(registration.createdAt)}`);
 
-    const mappedAnswers = mapRegistrationAnswers(registration.formData, dynamicFormSchema);
+    if (variant === 'with_answers') {
+      const mappedAnswers = mapRegistrationAnswers(registration.formData, dynamicFormSchema);
 
-    if (mappedAnswers.length > 0) {
-      writeText('Informações preenchidas:', 11, 'bold');
-      for (const answer of mappedAnswers) {
-        writeText(`${answer.label}: ${answer.value}`);
+      if (mappedAnswers.length > 0) {
+        writeText('Informações preenchidas:', 11, 'bold');
+        for (const answer of mappedAnswers) {
+          writeText(`${answer.label}: ${answer.value}`);
+        }
+      } else {
+        writeText('Informações preenchidas: Não informado');
       }
     } else {
-      writeText('Informações preenchidas: Não informado');
+      writeText('Informações preenchidas: não incluídas nesta versão');
     }
 
     y += 10;
@@ -113,6 +130,6 @@ export async function generateRegistrationsPdf({
     y += 14;
   }
 
-  const filename = buildRegistrationsPdfFileName(eventSlug ?? eventTitle);
+  const filename = buildRegistrationsPdfFileName(eventSlug ?? eventTitle, new Date(), variant);
   doc.save(filename);
 }

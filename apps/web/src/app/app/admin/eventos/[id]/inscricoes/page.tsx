@@ -37,7 +37,10 @@ export default function AdminInscricoesPage({ params }: PageProps) {
     search,
   });
   const { mutate: exportCsv, isPending: exporting } = useExportRegistrationsCsv(id);
-  const { mutate: exportPdf, isPending: exportingPdf } = useExportRegistrationsPdf(id);
+  const { mutate: exportPdfWithAnswers, isPending: exportingPdfWithAnswers } =
+    useExportRegistrationsPdf(id);
+  const { mutate: exportPdfWithoutAnswers, isPending: exportingPdfWithoutAnswers } =
+    useExportRegistrationsPdf(id);
 
   const pageLimit = data?.meta.limit ?? DEFAULT_PAGE_LIMIT;
 
@@ -56,11 +59,21 @@ export default function AdminInscricoesPage({ params }: PageProps) {
       ? getCandidateNumber(page, pageLimit, selectedRegistrationIndex)
       : null;
 
-  const handleExportPdf = () => {
-    exportPdf({
+  const handleExportPdfWithAnswers = () => {
+    exportPdfWithAnswers({
       eventTitle: eventData?.title ?? 'Evento',
       eventSlug: eventData?.slug ?? id,
       dynamicFormSchema: eventData?.dynamicFormSchema,
+      variant: 'with_answers',
+    });
+  };
+
+  const handleExportPdfWithoutAnswers = () => {
+    exportPdfWithoutAnswers({
+      eventTitle: eventData?.title ?? 'Evento',
+      eventSlug: eventData?.slug ?? id,
+      dynamicFormSchema: eventData?.dynamicFormSchema,
+      variant: 'without_answers',
     });
   };
 
@@ -83,11 +96,19 @@ export default function AdminInscricoesPage({ params }: PageProps) {
             </button>
             <button
               type="button"
-              onClick={handleExportPdf}
-              disabled={exportingPdf}
+              onClick={handleExportPdfWithAnswers}
+              disabled={exportingPdfWithAnswers || exportingPdfWithoutAnswers}
               className="btn-secondary"
             >
-              {exportingPdf ? 'Gerando PDF...' : 'Gerar PDF'}
+              {exportingPdfWithAnswers ? 'Gerando PDF...' : 'Gerar PDF (com respostas)'}
+            </button>
+            <button
+              type="button"
+              onClick={handleExportPdfWithoutAnswers}
+              disabled={exportingPdfWithAnswers || exportingPdfWithoutAnswers}
+              className="btn-secondary"
+            >
+              {exportingPdfWithoutAnswers ? 'Gerando PDF...' : 'Gerar PDF (sem respostas)'}
             </button>
             <a href="/app/admin/eventos" className="btn-ghost">
               ← Voltar

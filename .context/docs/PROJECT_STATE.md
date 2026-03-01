@@ -38,7 +38,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
   - visualizacao de inscricoes do evento em `/app/admin/eventos/[id]/inscricoes` com:
     - enumeracao de candidatos por ordem cronologica de cadastro,
     - popup ao clicar na linha com dados pessoais + respostas do formulario,
-    - exportacao em PDF com todos os candidatos enumerados na ordem de inscricao,
+    - exportacao em PDF com todos os candidatos enumerados na ordem de inscricao em duas versoes (com respostas e sem respostas do formulario preenchido),
   - gestao de programas (`/app/admin/programas` e `/app/admin/programas/[id]`),
   - criacao de usuarios em `/app/admin/usuarios` com funcoes `Administrador` e `Comum`.
 
@@ -136,6 +136,7 @@ Este repositorio opera em **monorepo** com foco em arquitetura **contract-first*
 - [x] Novo fluxo completo de recuperação de senha com endpoint de solicitação, envio de e-mail e token de redefinição com expiração de 2 horas.
 - [x] Nova gestão de usuários no admin (`/app/admin/usuarios` + `POST /v1/admin/users`) com papéis `Administrador`/`Comum` e regra de permissão por ator (`super_admin` vs `admin`).
 - [x] Novo modelo `password_reset_tokens` no Prisma com migration dedicada e índices para expiração/uso.
+- [x] Exportação de inscrições no admin agora oferece duas versões de PDF: uma completa (com respostas) e outra sem os dados preenchidos no formulário de inscrição.
 
 ### Proximos passos sugeridos
 - [ ] Expandir o design system para rotas `/public/eventos` e `/public/eventos/[slug]`.

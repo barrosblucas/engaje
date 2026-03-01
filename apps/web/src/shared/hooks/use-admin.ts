@@ -1,4 +1,7 @@
-import { generateRegistrationsPdf } from '@/lib/admin-registrations-pdf';
+import {
+  type RegistrationsPdfVariant,
+  generateRegistrationsPdf,
+} from '@/lib/admin-registrations-pdf';
 import { API_URL, apiClient } from '@/shared/api-client';
 import type {
   AdminEventDetailResponse,
@@ -203,6 +206,7 @@ interface ExportRegistrationsPdfInput {
   eventTitle: string;
   eventSlug?: string;
   dynamicFormSchema?: DynamicForm | null;
+  variant?: RegistrationsPdfVariant;
 }
 
 async function fetchAllEventRegistrations(eventId: string): Promise<AdminRegistration[]> {
@@ -232,6 +236,7 @@ export function useExportRegistrationsPdf(eventId: string) {
       eventTitle,
       eventSlug,
       dynamicFormSchema,
+      variant,
     }: ExportRegistrationsPdfInput) => {
       const registrations = await fetchAllEventRegistrations(eventId);
       await generateRegistrationsPdf({
@@ -239,6 +244,7 @@ export function useExportRegistrationsPdf(eventId: string) {
         eventTitle,
         eventSlug,
         dynamicFormSchema,
+        variant,
       });
     },
   });

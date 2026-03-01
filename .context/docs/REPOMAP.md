@@ -56,7 +56,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/app/public/programas/[slug]/page.tsx` — Detalhe publico de programa com modo inscricao/informativo.
 - `src/app/public/contato/page.tsx` — Pagina publica de contato institucional e FAQ.
 - `src/app/app/admin/eventos/[id]/page.tsx` — Formulario de evento em etapas com builder dinamico + preview.
-- `src/app/app/admin/eventos/[id]/inscricoes/page.tsx` — Lista SPA de inscritos com enumeração cronológica, popup de detalhes ao clicar na linha e botao de exportacao em PDF.
+- `src/app/app/admin/eventos/[id]/inscricoes/page.tsx` — Lista SPA de inscritos com enumeração cronológica, popup de detalhes ao clicar na linha e dois botoes de exportacao em PDF (com respostas e sem respostas do formulario de inscricao).
 - `src/app/app/admin/programas/*` — Gestao SPA de programas com form builder dinamico e seletor de destaque para Home.
 - `src/app/app/admin/usuarios/page.tsx` — Tela SPA para criação de usuários com função `Administrador` ou `Comum`.
 - `src/components/dynamic-form/*` — Builder, renderizacao de campos dinamicos e preview.
@@ -81,7 +81,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/lib/public-share.spec.ts` — Testes Vitest para resolver de URL publica e geracao de links de compartilhamento.
 - `src/lib/registration-answers.ts` — Helpers para formatacao/mapeamento das respostas de inscricao e numeracao dos candidatos.
 - `src/lib/registration-answers.spec.ts` — Testes Vitest para mapeamento de respostas, ordenacao cronologica e calculo de enumeracao.
-- `src/lib/admin-registrations-pdf.ts` — Gerador de PDF client-side para inscricoes admin com bloco por candidato enumerado.
+- `src/lib/admin-registrations-pdf.ts` — Gerador de PDF client-side para inscricoes admin com bloco por candidato enumerado e variante de exportacao (`with_answers`/`without_answers`) para ocultar respostas do formulario quando necessario.
 - `src/lib/admin-registrations-pdf.spec.ts` — Teste Vitest do nome de arquivo gerado para exportacao PDF.
 - `src/lib/rich-text.ts` — Sanitizacao defensiva para render de HTML rico e normalizacao de URLs de upload (`/uploads/*`) quando houver origem de API configurada.
 - `src/lib/cn.ts` — Helper para composicao de classes CSS.
@@ -89,7 +89,7 @@ Mapa vivo do repositorio Engaje. Atualize sempre que estruturas, rotas ou contra
 - `src/lib/rich-text.spec.ts` — Testes Vitest de sanitizacao/normalizacao de HTML rico e URLs de imagem.
 - `src/shared/api-client.ts` — Cliente HTTP com `credentials: "include"` e resolvedor de origem da API: prioriza `NEXT_PUBLIC_API_URL`; em `development` usa `hostname:3200` apenas para hosts locais/LAN e para dominios publicos cai em same-origin (`window.location.origin`).
 - `src/shared/api-client.spec.ts` — Testes Vitest do resolvedor de origem da API (prioridade de env, fallback local/LAN em dev e fallback same-origin para dominios publicos).
-- `src/shared/hooks/use-admin.ts` — Hooks admin consumindo `/admin/events*`, `/admin/programs*` e `/admin/users`, incluindo mutacao para alternar programa ativo na Home e exportacao de inscricoes em PDF.
+- `src/shared/hooks/use-admin.ts` — Hooks admin consumindo `/admin/events*`, `/admin/programs*` e `/admin/users`, incluindo mutacao para alternar programa ativo na Home e exportacao de inscricoes em PDF com variante (com/sem respostas).
 - `src/shared/hooks/use-auth.ts` — Hooks de auth para sessão, perfil, troca de senha e recuperação de senha por token.
 - `src/shared/hooks/use-events.ts` — Hooks publicos/autenticados para eventos, programas, inscricoes (lista, detalhe, criacao, cancelamento) e attendance intents.
 - `src/shared/dynamic-form/*` — Utilitarios de serializacao/deserializacao e regras de modo para o builder.
